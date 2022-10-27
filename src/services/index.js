@@ -32,7 +32,7 @@ export async function getDoctoscc(dataIdFactura) {
 }
 
 //ver bancos
-export async function getBanco (DataBanco){
+export async function getBanco(DataBanco) {
   try {
     const idClienteUser = DataBanco;
     const response = await axios({
@@ -43,8 +43,32 @@ export async function getBanco (DataBanco){
   } catch (e) {
     console.log(e);
   }
-
 }
+//ver formaPago
+export async function getFormaPagoList() {
+  try {
+    const response = await axios({
+      url: `${BaseUrl}api/FormaPago/Ver`,
+      method: "GET",
+    });
+    return response;
+  } catch (e) {
+    console.log(e);
+  }
+}
+//ver formaPago con campo: formapago1 //lo puedo ocupar luego
+// export async function getFormaPago(DataFormaPago) {
+//   try {
+//     const FormaPagoForm = DataFormaPago;
+//     const response = await axios({
+//       url: `${BaseUrl}api/FormaPago/Ver/${FormaPagoForm}`,
+//       method: "GET",
+//     });
+//     return response;
+//   } catch (e) {
+//     console.log(e);
+//   }
+// }
 
 //registrar ingreso
 export async function postIngreso(IngresoData) {
@@ -55,11 +79,11 @@ export async function postIngreso(IngresoData) {
     // formData.append("Folio", IngresoData.resGetDoctoscc.data.folio); folio autoincrementable?? funcion tools -siguiente folio
     formData.append("Notas", IngresoData.notas);
     formData.append("Tipo", IngresoData.resGetDoctoscc.data.tipo);
-    formData.append("IdCliente", IngresoData.resGetDoctoscc.data.cliente);//(id_empros de tabla clientes es el cliente en la tabal doctoscc)
-    formData.append("IdEmpresa", IngresoData.resGetDoctoscc.data.idEmpresa);  
-    // formData.append("FormaPago", IngresoData.resGetDoctoscc.data.formaPago); EN INGRESO ES INT Y EN DOCTOSCC ES STRING
-    formData.append("Banco", IngresoData.resGetBancos.data.idBanco); // NO TODOS TIENE BANCO 
-    formData.append("Moneda", IngresoData.resGetBancos.data.moneda)
+    formData.append("IdCliente", IngresoData.resGetDoctoscc.data.cliente); //(id_empros de tabla clientes es el cliente en la tabal doctoscc)
+    formData.append("IdEmpresa", IngresoData.resGetDoctoscc.data.idEmpresa);
+    formData.append("FormaPago", IngresoData.FormaPago);
+    formData.append("Banco", IngresoData.resGetBancos.data.idBanco); // NO TODOS TIENE BANCO
+    formData.append("Moneda", IngresoData.resGetBancos.data.moneda);
 
     const responses = await axios({
       headers: { "Content-Type": "application/json" },

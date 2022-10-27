@@ -1,9 +1,14 @@
 import React, { Fragment, useState, useEffect, useRef } from "react";
-import { getBanco, getClave, getDoctoscc } from "../services/index";
+import {
+  getBanco,
+  getClave,
+  getDoctoscc,
+  getFormaPagoList,
+} from "../services/index";
+import swal from "sweetalert";
 
 function FormularioPago({ handleSubmit }) {
-  const [dropdown, setDropdown] = useState(false);
-  const [ingreso, setIngreso] = useState([]);
+  const [formaPago, setFormaPago] = useState([]);
   const [formValues, setFormValues] = useState({
     clave: "",
     importe_pago: "",
@@ -12,9 +17,16 @@ function FormularioPago({ handleSubmit }) {
     FormaPago: "",
   });
 
-  const abrirCerrarDropdown = () => {
-    setDropdown(!dropdown);
-  };
+  useEffect(() => {
+    async function VerFormaPago() {
+      const response = await getFormaPagoList();
+      // console.log(response);
+      if (response.status === 200) {
+        setFormaPago(response.data);
+      }
+    }
+    VerFormaPago();
+  }, []);
 
   const inputFileRef = useRef();
 
@@ -39,22 +51,44 @@ function FormularioPago({ handleSubmit }) {
         const resGetIdCliente = resGetDoctoscc.data.cliente;
         const resGetBancos = await getBanco(resGetIdCliente);
         console.log(resGetDoctoscc);
-
-        handleSubmit({ ...formValues, resGetDoctoscc, resGetBancos });
-        setFormValues({
-          clave: "",
-          importe_pago: "",
-          fecha: "",
-          HoraActual: "",
-          notas: "",
+        const fechaForm = formValues.fecha
+        const importeForm = formValues.importe_pago
+        const formapagoForm = formValues.FormaPago
+        if(fechaForm=="" || importeForm=="" || formapagoForm==""){
+          swal({
+            title: "",
+            text: "LOS CAMPOS CON * SON REQUERIDOS",
+            icon: "warning",
+          });
+        }else{
+          handleSubmit({ ...formValues, resGetDoctoscc, resGetBancos });
+          setFormValues({
+            clave: "",
+            importe_pago: "",
+            fecha: "",
+            notas: "",
+            FormaPago: "",
+          });
+          swal({
+            title: "REGISTRADO EXISTOSAMENTE!!",
+            text: "",
+            icon: "success",
+          });
+        }
+        // alert("Enviado Correctamente");
+      } else {
+        swal({
+          title: "UPPS!!",
+          text: "VERIFICA LA CLAVE E IMPORTE",
+          icon: "warning",
         });
-        alert("Enviado Correctamente");
       }
     } catch (e) {
-      alert("Clave Errónea");
-      setFormValues({
-        clave: "",
-        importe_pago: "",
+      // alert("Clave Errónea");
+      swal({
+        title: "UPPS!!",
+        text: "HUBO UN ERROR AL REGISTRAR, INTENTE MÁS TARDE",
+        icon: "warning",
       });
       console.log(e);
     }
@@ -65,8 +99,8 @@ function FormularioPago({ handleSubmit }) {
       clave: "",
       importe_pago: "",
       fecha: "",
-      HoraActual: "",
       notas: "",
+      FormaPago: "",
     });
   };
   // const _handleSubmit = (e) => {
@@ -97,7 +131,7 @@ function FormularioPago({ handleSubmit }) {
       >
         <div className="row p-2 m-2">
           <div className="form-group col-sm-12 col-md-6 col-lg-6 col-xl-6">
-            <label className="control-label p-1 ">Clave</label>
+            <label className="control-label p-1 ">Clave*</label>
             <input
               className="form-control"
               placeholder="Clave"
@@ -110,7 +144,7 @@ function FormularioPago({ handleSubmit }) {
             />
           </div>
           <div className="form-group col-sm-12 col-md-6 col-lg-6 col-xl-6">
-            <label className="control-label p-1 ">Importe Pago</label>
+            <label className="control-label p-1 ">Importe Pago*</label>
             <input
               className="form-control"
               placeholder="Importe Pago"
@@ -124,7 +158,7 @@ function FormularioPago({ handleSubmit }) {
             />
           </div>
           <div className="form-group col-sm-12 col-md-6 col-lg-6 col-xl-6">
-            <label className="p-1">Fecha y Hora actual </label>
+            <label className="p-1">Fecha y Hora actual* </label>
             <input
               className="form-control"
               type="datetime-local"
@@ -134,24 +168,35 @@ function FormularioPago({ handleSubmit }) {
               required
             />
           </div>
-
           <div className="form-group col-sm-12 col-md-6 col-lg-6 col-xl-6 pt-1">
-            <label className="pb-1">Forma de pago</label>
-            <select onChange={handleChange} className="form-select">
-              <option defaultValue>Seleccione su forma de pago</option>
-              <option value={formValues.FormaPago}>Vale</option>
-              <option value={formValues.FormaPago}>Banco</option>
-              <option value={formValues.FormaPago}>Transferencia</option>
-              <option value={formValues.FormaPago}>Pago en OXXO</option>
-              <option value={formValues.FormaPago}>Tarjeta de Credito</option>
-              <option value={formValues.FormaPago}>Depósito efectivo en banco</option>
-              
-             
+            <label className="pb-1">Forma de pago*</label>
+            <select
+              onChange={handleChange}
+              name="FormaPago"
+              className="form-select"
+            >
+              <option defaultValue>Seleccionar Forma de Pago</option>
+              <option value={1}>Pago en OXXO</option>
+              <option value={1}>Depósito efectivo en banco</option>
+              {formaPago.map((elemento) => (
+                <option key={elemento.idFormapago} value={elemento.idFormapago}>
+                  {elemento.formapago1}
+                </option>
+              ))}
             </select>
+            {/* <select onChange={handleChange} className="form-select">
+              <option defaultValue>Seleccione su forma de pago</option>
+              <option name="FormaPago" value={formValues.FormaPago}>Vale</option>
+              <option name="FormaPago" value={formValues.FormaPago}>Banco</option>
+              <option name="FormaPago" value={formValues.FormaPago}>Transferencia</option>
+              <option name="FormaPago" value={formValues.FormaPago}>Pago en OXXO</option>
+              <option name="FormaPago" value={formValues.FormaPago}>Tarjeta de Credito</option>
+              <option name="FormaPago" value={formValues.FormaPago}>Depósito efectivo en banco</option>
+            </select> */}
           </div>
 
           <div className="form-group col-sm-12 col-md-6 col-lg-6 col-xl-6 ">
-            <label className="pb-1">Subir Ticket de Pago</label>
+            <label className="pb-1">Subir Ticket de Pago*</label>
             <input
               // required
               className="form-control"
