@@ -1,27 +1,26 @@
 import React, { Fragment, useState, useEffect, useRef } from "react";
 import { getBanco, getClave, getDoctoscc } from "../services/index";
-import {Dropdown, DropdownItem, DropdownMenu, DropdownToggle} from 'reactstrap';
 
 function FormularioPago({ handleSubmit }) {
-  const [dropdown, setDropdown] = useState(false)
+  const [dropdown, setDropdown] = useState(false);
   const [ingreso, setIngreso] = useState([]);
   const [formValues, setFormValues] = useState({
     clave: "",
     importe_pago: "",
     fecha: "",
     notas: "",
+    FormaPago: "",
   });
 
-  const abrirCerrarDropdown=()=>{
+  const abrirCerrarDropdown = () => {
     setDropdown(!dropdown);
-  }
+  };
 
   const inputFileRef = useRef();
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     // console.log(name, value);
-
     setFormValues({ ...formValues, [name]: value });
   };
 
@@ -38,8 +37,9 @@ function FormularioPago({ handleSubmit }) {
         const resGetIdFactura = resGetDataClave.data.idFactura;
         const resGetDoctoscc = await getDoctoscc(resGetIdFactura);
         const resGetIdCliente = resGetDoctoscc.data.cliente;
-        const resGetBancos = await getBanco(resGetIdCliente)
+        const resGetBancos = await getBanco(resGetIdCliente);
         console.log(resGetDoctoscc);
+
         handleSubmit({ ...formValues, resGetDoctoscc, resGetBancos });
         setFormValues({
           clave: "",
@@ -88,7 +88,7 @@ function FormularioPago({ handleSubmit }) {
 
   return (
     <Fragment>
-      <h1 className="mt-3 p-4 text-center ">Información de pago</h1>
+      <h1 className="mt-3 p-4 text-center ">INFORMACIÓN DE PAGO</h1>
       <form
         id="formIngresoPago"
         className="row g-3 needs-validation"
@@ -106,7 +106,7 @@ function FormularioPago({ handleSubmit }) {
               value={formValues.clave}
               onChange={handleChange}
               autoFocus
-              // required
+              required
             />
           </div>
           <div className="form-group col-sm-12 col-md-6 col-lg-6 col-xl-6">
@@ -120,7 +120,7 @@ function FormularioPago({ handleSubmit }) {
               name="importe_pago"
               value={formValues.importe_pago}
               onChange={handleChange}
-              // required
+              required
             />
           </div>
           <div className="form-group col-sm-12 col-md-6 col-lg-6 col-xl-6">
@@ -131,23 +131,23 @@ function FormularioPago({ handleSubmit }) {
               name="fecha"
               value={formValues.fecha}
               onChange={handleChange}
-              // required
+              required
             />
           </div>
 
           <div className="form-group col-sm-12 col-md-6 col-lg-6 col-xl-6 pt-1">
-          <label className="pb-1">Forma de pago</label>
-            <Dropdown className="width-100%">
-              <DropdownToggle caret className="">
-                      Seleccione forma de pago
-              </DropdownToggle>
-              <DropdownMenu>
-                <DropdownItem>1</DropdownItem>
-                <DropdownItem>2</DropdownItem>
-                <DropdownItem>3</DropdownItem>
-                <DropdownItem>4</DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
+            <label className="pb-1">Forma de pago</label>
+            <select onChange={handleChange} className="form-select">
+              <option defaultValue>Seleccione su forma de pago</option>
+              <option value={formValues.FormaPago}>Vale</option>
+              <option value={formValues.FormaPago}>Banco</option>
+              <option value={formValues.FormaPago}>Transferencia</option>
+              <option value={formValues.FormaPago}>Pago en OXXO</option>
+              <option value={formValues.FormaPago}>Tarjeta de Credito</option>
+              <option value={formValues.FormaPago}>Depósito efectivo en banco</option>
+              
+             
+            </select>
           </div>
 
           <div className="form-group col-sm-12 col-md-6 col-lg-6 col-xl-6 ">
