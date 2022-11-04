@@ -105,6 +105,9 @@ body {
   resize: none;
 }
 
+
+  
+
 hr {
   margin: 1rem 0;
   color: inherit;
@@ -359,6 +362,8 @@ textarea {
   font-size: inherit;
   line-height: inherit;
 }
+
+
 
 button,
 select {
@@ -10936,3 +10941,23 @@ textarea.form-control-lg {
     display: none !important;
   }
 }/*# sourceMappingURL=styles.css.map */
+
+/* .inputForm{
+  font-size: inherit;
+  padding: 10px;
+  border-radius: 10px;
+  border: 2px solid blueviolet;
+  outline: none;
+}
+.inputFormPago{ 
+  position: relative;
+  }
+  .inputFormPago::before{
+  content:"Clave";
+  position: absolute;
+  top: -10px;
+  left:20px;
+  background-color: #fff;
+  padding: 0 4px;
+  color: blueviolet;
+  } */

@@ -4,10 +4,13 @@ import {
   getClave,
   getDoctoscc,
   getFormaPagoList,
+  postDoctoscc,
+  postTransbancaria,
 } from "../services/index";
 import swal from "sweetalert";
 
 function FormularioPago({ handleSubmit }) {
+  const [btnActivo, SetBtnActivo] = useState(false);
   const [formaPago, setFormaPago] = useState([]);
   const [formValues, setFormValues] = useState({
     clave: "",
@@ -15,6 +18,7 @@ function FormularioPago({ handleSubmit }) {
     fecha: "",
     notas: "",
     FormaPago: "",
+    cuenta: "",
   });
 
   useEffect(() => {
@@ -39,9 +43,17 @@ function FormularioPago({ handleSubmit }) {
   const _handleSubmit = async (e) => {
     e.preventDefault();
     const resGetDataClave = await getClave({ ...formValues });
+    if (resGetDataClave == null) {
+      swal({
+        title: "UPPS!!",
+        text: "La Clave no existe!",
+        icon: "warning",
+      });
+    }
     const resGetOnlyClave = resGetDataClave.data.clave;
     const resGetOnlyImporte = resGetDataClave.data.importePago;
     try {
+      //Validamos la calve y el importe
       if (
         resGetOnlyClave == formValues.clave &&
         resGetOnlyImporte == formValues.importe_pago
@@ -50,17 +62,24 @@ function FormularioPago({ handleSubmit }) {
         const resGetDoctoscc = await getDoctoscc(resGetIdFactura);
         const resGetIdCliente = resGetDoctoscc.data.cliente;
         const resGetBancos = await getBanco(resGetIdCliente);
-        console.log(resGetDoctoscc);
-        const fechaForm = formValues.fecha
-        const importeForm = formValues.importe_pago
-        const formapagoForm = formValues.FormaPago
-        if(fechaForm=="" || importeForm=="" || formapagoForm==""){
+        // console.log(resGetDoctoscc);
+        const fechaForm = formValues.fecha;
+        const importeForm = formValues.importe_pago;
+        const formapagoForm = formValues.FormaPago;
+        //valdiamos campos vacios
+        if (fechaForm == "" || importeForm == "" || formapagoForm == "") {
           swal({
             title: "",
-            text: "LOS CAMPOS CON * SON REQUERIDOS",
+            text: "Los campos con * son requeridos",
             icon: "warning",
           });
-        }else{
+        } else {
+          const statusTransbancaria =await postTransbancaria({ ...formValues, resGetDoctoscc, resGetBancos });
+          console.log(statusTransbancaria)
+          if(statusTransbancaria.status >= 200 && statusTransbancaria.status <= 250  ){
+            const statusDoctosccDet= await postDoctoscc({ ...formValues, resGetDoctoscc, resGetBancos });
+            console.log(statusDoctosccDet)
+          }
           handleSubmit({ ...formValues, resGetDoctoscc, resGetBancos });
           setFormValues({
             clave: "",
@@ -68,26 +87,25 @@ function FormularioPago({ handleSubmit }) {
             fecha: "",
             notas: "",
             FormaPago: "",
+            cuenta: "",
           });
           swal({
-            title: "REGISTRADO EXISTOSAMENTE!!",
+            title: "Registrado EXITOSAMENTE!!",
             text: "",
             icon: "success",
           });
         }
-        // alert("Enviado Correctamente");
       } else {
         swal({
           title: "UPPS!!",
-          text: "VERIFICA LA CLAVE E IMPORTE",
+          text: "Verifica el Importe!",
           icon: "warning",
         });
       }
     } catch (e) {
-      // alert("Clave Errónea");
       swal({
         title: "UPPS!!",
-        text: "HUBO UN ERROR AL REGISTRAR, INTENTE MÁS TARDE",
+        text: "Hubo un erro al registrar, intenta más tarde",
         icon: "warning",
       });
       console.log(e);
@@ -95,12 +113,27 @@ function FormularioPago({ handleSubmit }) {
   };
 
   const handleClick = () => {
-    setFormValues({
-      clave: "",
-      importe_pago: "",
-      fecha: "",
-      notas: "",
-      FormaPago: "",
+    swal({
+      title: "CANCELAR",
+      text: "¿Esta seguro que desea cancelar la operación?",
+      icon: "warning",
+      buttons: ["No", "Si"],
+    }).then((respuesta) => {
+      if (respuesta) {
+        swal({
+          text: "Cancelado correctamente",
+          icon: "success",
+          timer: "2000",
+        });
+        setFormValues({
+          clave: "",
+          importe_pago: "",
+          fecha: "",
+          notas: "",
+          FormaPago: "",
+          cuenta: "",
+        });
+      }
     });
   };
   // const _handleSubmit = (e) => {
@@ -120,21 +153,35 @@ function FormularioPago({ handleSubmit }) {
   //   loadIngreso();
   // }, []);
 
+  const handleClickActivar = () => {
+    const SelectFormaPago = formValues.FormaPago;
+    if (SelectFormaPago == "1") {
+      SetBtnActivo(false);
+    } else {
+      if (
+        SelectFormaPago == "2" ||
+        SelectFormaPago == "3" ||
+        SelectFormaPago == "4"
+      ) {
+        SetBtnActivo(true);
+      }
+    }
+  };
+
   return (
     <Fragment>
-      <h1 className="mt-3 p-4 text-center ">INFORMACIÓN DE PAGO</h1>
+      <h1 className="mt-3 p-4 text-center ">REGISTRO DE PAGO</h1>
       <form
         id="formIngresoPago"
-        className="row g-3 needs-validation"
+        className="form-floating row g-3 needs-validation"
         noValidate
         onSubmit={_handleSubmit}
       >
         <div className="row p-2 m-2">
-          <div className="form-group col-sm-12 col-md-6 col-lg-6 col-xl-6">
-            <label className="control-label p-1 ">Clave*</label>
+          <div className="form-floating  col-sm-12 col-md-6 col-lg-6 col-xl-6 ">
             <input
-              className="form-control"
-              placeholder="Clave"
+              id="floatingInputValue"
+              className="form-control "
               type="text"
               name="clave"
               value={formValues.clave}
@@ -142,12 +189,16 @@ function FormularioPago({ handleSubmit }) {
               autoFocus
               required
             />
+            <label htmlFor="floatingInputValue" className="text-dark p-3 ">
+              Clave*
+            </label>
           </div>
-          <div className="form-group col-sm-12 col-md-6 col-lg-6 col-xl-6">
-            <label className="control-label p-1 ">Importe Pago*</label>
+          <br></br>
+          <br></br>
+          <br></br>
+          <div className="form-floating  col-sm-12 col-md-6 col-lg-6 col-xl-6 ">
             <input
               className="form-control"
-              placeholder="Importe Pago"
               type="number"
               pattern="[0-9]+"
               step="any"
@@ -156,22 +207,15 @@ function FormularioPago({ handleSubmit }) {
               onChange={handleChange}
               required
             />
+            <label className="text-dark p-3 ">Importe Pago*</label>
           </div>
-          <div className="form-group col-sm-12 col-md-6 col-lg-6 col-xl-6">
-            <label className="p-1">Fecha y Hora actual* </label>
-            <input
-              className="form-control"
-              type="datetime-local"
-              name="fecha"
-              value={formValues.fecha}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="form-group col-sm-12 col-md-6 col-lg-6 col-xl-6 pt-1">
-            <label className="pb-1">Forma de pago*</label>
+          <br></br>
+          <br></br>
+          <br></br>
+          <div className="form-floating col-sm-12 col-md-6 col-lg-6 col-xl-6 pt-1">
             <select
               onChange={handleChange}
+              onClick={() => handleClickActivar()}
               name="FormaPago"
               className="form-select"
             >
@@ -184,39 +228,76 @@ function FormularioPago({ handleSubmit }) {
                 </option>
               ))}
             </select>
-            {/* <select onChange={handleChange} className="form-select">
-              <option defaultValue>Seleccione su forma de pago</option>
-              <option name="FormaPago" value={formValues.FormaPago}>Vale</option>
-              <option name="FormaPago" value={formValues.FormaPago}>Banco</option>
-              <option name="FormaPago" value={formValues.FormaPago}>Transferencia</option>
-              <option name="FormaPago" value={formValues.FormaPago}>Pago en OXXO</option>
-              <option name="FormaPago" value={formValues.FormaPago}>Tarjeta de Credito</option>
-              <option name="FormaPago" value={formValues.FormaPago}>Depósito efectivo en banco</option>
-            </select> */}
+            <label className=" text-dark p-3 ">Forma de pago*</label>
           </div>
-
-          <div className="form-group col-sm-12 col-md-6 col-lg-6 col-xl-6 ">
-            <label className="pb-1">Subir Ticket de Pago*</label>
+          <br></br>
+          <br></br>
+          <br></br>
+          <div className="form-floating col-sm-12 col-md-6 col-lg-6 col-xl-6 pt-1">
+            <select
+              onChange={handleChange}
+              name="cuenta"
+              className="form-select"
+              disabled={!btnActivo}
+            >
+              <option defaultValue>Seleccionar cuenta</option>
+              <option value={1}>123456789</option>
+              <option value={2}>222222222</option>
+              {formaPago.map((elemento) => (
+                <option key={elemento.idFormapago} value={elemento.idFormapago}>
+                  {elemento.formapago1}
+                </option>
+              ))}
+            </select>
+            <label className=" text-dark p-3 ">Cuenta Beneficiaria*</label>
+          </div>
+          <br></br>
+          <br></br>
+          <br></br>
+          <div className="form-floating col-sm-12 col-md-6 col-lg-6 col-xl-6 ">
             <input
-              // required
               className="form-control"
               type="file"
               ref={inputFileRef}
               id="formFile"
             />
+            <label className="text-dark pt-2 pl-3">Subir Ticket de Pago*</label>
           </div>
-          <div className="form-group col-sm-12 col-md-6 col-lg-6 col-xl-6">
-            <label className="p-1">Comentarios</label> <br></br>
+          <br></br>
+          <br></br>
+          <br></br>
+          <div className="form-floating  col-sm-12 col-md-6 col-lg-6 col-xl-6">
+            <input
+              className="form-control "
+              type="datetime-local"
+              name="fecha"
+              value={formValues.fecha}
+              onChange={handleChange}
+              required
+            />
+            <label className="text-dark p-3">Fecha y Hora actual* </label>
+          </div>
+
+          <br></br>
+          <br></br>
+          <br></br>
+          <div className="form-floating col-sm-12 col-md-6 col-lg-6 col-xl-6">
             <textarea
               className="textareano rounded-3 p-3 form-control form-control-lg mb-2 "
-              placeholder="Descripción"
               name="notas"
               value={formValues.notas}
               onChange={handleChange}
             ></textarea>
+            <label className="text-dark p-3 pb-4">Comentarios</label>
           </div>
-          <div className=" form-group d-grid gap-2 d-md-flex justify-content-md-center p-5">
-            <button className="btn btn-primary me-md-2" type="submit">
+          <br></br>
+          <br></br>
+          <br></br>
+          <div className=" form-group d-grid gap-2 d-md-flex justify-content-md-center p-3">
+            <button
+              className="btn btn-success me-md-2 text-white"
+              type="submit"
+            >
               Enviar
             </button>
             <button

@@ -8,7 +8,7 @@ function App() {
   };
   return (
     <main className="p-5  ">
-      <div className="container  bg-dark text-white rounded-3   ">
+      <div className="container   bg-secondary text-white rounded-3   ">
         <FormularioPago handleSubmit={handleSubmit}/>
       </div>
     </main>
