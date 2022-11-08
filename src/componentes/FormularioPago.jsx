@@ -5,7 +5,10 @@ import {
   getDoctoscc,
   getFormaPagoList,
   postDoctoscc,
+  postDoctosccDet,
+  postingresoComprobante,
   postTransbancaria,
+  putIngresoComprobante,
 } from "../services/index";
 import swal from "sweetalert";
 
@@ -18,7 +21,7 @@ function FormularioPago({ handleSubmit }) {
     fecha: "",
     notas: "",
     FormaPago: "",
-    cuenta: "",
+    cuentaBeneficiara : "",
   });
 
   useEffect(() => {
@@ -75,25 +78,28 @@ function FormularioPago({ handleSubmit }) {
           });
         } else {
           const statusTransbancaria =await postTransbancaria({ ...formValues, resGetDoctoscc, resGetBancos });
-          console.log(statusTransbancaria)
           if(statusTransbancaria.status >= 200 && statusTransbancaria.status <= 250  ){
-            const statusDoctosccDet= await postDoctoscc({ ...formValues, resGetDoctoscc, resGetBancos });
-            console.log(statusDoctosccDet)
+            const statusDoctoscc= await postDoctoscc({ ...formValues, resGetDoctoscc, resGetBancos });
+            const statusDoctosccDet = await postDoctosccDet({ ...formValues, resGetDoctoscc, resGetBancos,statusDoctoscc });// aqui me quede
+            const statusIngresoComprobante = await postingresoComprobante({statusDoctoscc });
+            await handleSubmit({ ...formValues, resGetDoctoscc, resGetBancos,statusIngresoComprobante,statusTransbancaria });
+            await putIngresoComprobante({ ...formValues, resGetDoctoscc, resGetBancos,statusDoctoscc, statusIngresoComprobante});
+
+            setFormValues({
+              clave: "",
+              importe_pago: "",
+              fecha: "",
+              notas: "",
+              FormaPago: "",
+              cuentaBeneficiara : "",
+            });
+            swal({
+              title: "Registrado EXITOSAMENTE!!",
+              text: "",
+              icon: "success",
+            });
           }
-          handleSubmit({ ...formValues, resGetDoctoscc, resGetBancos });
-          setFormValues({
-            clave: "",
-            importe_pago: "",
-            fecha: "",
-            notas: "",
-            FormaPago: "",
-            cuenta: "",
-          });
-          swal({
-            title: "Registrado EXITOSAMENTE!!",
-            text: "",
-            icon: "success",
-          });
+         
         }
       } else {
         swal({
@@ -131,7 +137,7 @@ function FormularioPago({ handleSubmit }) {
           fecha: "",
           notas: "",
           FormaPago: "",
-          cuenta: "",
+          cuentaBeneficiara : "",
         });
       }
     });
@@ -236,13 +242,13 @@ function FormularioPago({ handleSubmit }) {
           <div className="form-floating col-sm-12 col-md-6 col-lg-6 col-xl-6 pt-1">
             <select
               onChange={handleChange}
-              name="cuenta"
+              name="cuentaBeneficiara "
               className="form-select"
               disabled={!btnActivo}
             >
               <option defaultValue>Seleccionar cuenta</option>
-              <option value={1}>123456789</option>
-              <option value={2}>222222222</option>
+              <option value={1}>1111</option>
+              <option value={2}>2222</option>
               {formaPago.map((elemento) => (
                 <option key={elemento.idFormapago} value={elemento.idFormapago}>
                   {elemento.formapago1}
