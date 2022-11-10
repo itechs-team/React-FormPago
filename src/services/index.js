@@ -56,52 +56,52 @@ export async function getFormaPagoList() {
     console.log(e);
   }
 }
-
-//ver cargo
-// export async function getCargo() {
-//   try {
-//     const response = await axios({
-//       url: `${BaseUrl}api/Cargo/Ver`,
-//       method: "GET",
-//     });
-//     return response;
-//   } catch (e) {
-//     console.log(e);
-//   }
-// }
+//ultimo folio
+export async function getFolioDoctoscc(FolioData) {
+  try {
+    const tipo = FolioData.resGetDoctoscc.data.tipo;
+    const responseFolio = await axios({
+      url: `${BaseUrl}api/Doctoscc/Ver/${tipo}`,
+      method: "GET",
+    });
+    return responseFolio;
+  } catch (e) {
+    console.log(e);
+  }
+}
 
 //registrar transBancaria
 export async function postTransbancaria(transbData) {
   try {
     const formDataTrans = new FormData();
     if (transbData.FormaPago != 1) {
-      formDataTrans.append("Cuenta", transbData.resGetBancos.data.idBanco);//corregir esto
+      formDataTrans.append("Cuenta", transbData.resGetBancos.data.idBanco); //corregir esto, cuenta seleccionada por el usuario
       formDataTrans.append("Referencia", "");
       formDataTrans.append("Qty", transbData.importe_pago);
       formDataTrans.append("Formapago", transbData.FormaPago);
       formDataTrans.append("Fecha", transbData.fecha);
-      formDataTrans.append("Daterecord",transbData.fecha);
+      formDataTrans.append("Daterecord", transbData.fecha);
       formDataTrans.append("Status", 0);
       formDataTrans.append("IdEmpros", transbData.resGetDoctoscc.data.cliente);
-      formDataTrans.append("IdSucursal", transbData.resGetDoctoscc.data.idSucursal);
+      formDataTrans.append("IdSucursal",transbData.resGetDoctoscc.data.idSucursal);
       formDataTrans.append("Tipo", transbData.resGetDoctoscc.data.tipo);
-      formDataTrans.append("UserCreator",transbData.resGetDoctoscc.data.idUsuario );
-      formDataTrans.append("DateLastUpdate",transbData.fecha);
-      formDataTrans.append("UserLastUpdater", transbData.resGetDoctoscc.data.idUsuario);
+      formDataTrans.append("UserCreator",transbData.resGetDoctoscc.data.idUsuario);
+      formDataTrans.append("DateLastUpdate", transbData.fecha);
+      formDataTrans.append("UserLastUpdater",transbData.resGetDoctoscc.data.idUsuario);
     } else {
       if (transbData.FormaPago == 1) {
-        formDataTrans.append("Cuenta", 2088);//corregir esto
+        formDataTrans.append("Cuenta", 2088); //corregir esto, cuenta definida es caso de que el pago se haga efectivo
         formDataTrans.append("Referencia", "");
         formDataTrans.append("Qty", transbData.importe_pago);
         formDataTrans.append("Formapago", transbData.FormaPago);
         formDataTrans.append("Fecha", transbData.fecha);
         formDataTrans.append("Status", 0);
-        formDataTrans.append("Daterecord",transbData.fecha);
+        formDataTrans.append("Daterecord", transbData.fecha);
         formDataTrans.append("IdEmpros",transbData.resGetDoctoscc.data.cliente);
         formDataTrans.append("IdSucursal",transbData.resGetDoctoscc.data.idSucursal);
         formDataTrans.append("Tipo", transbData.resGetDoctoscc.data.tipo);
         formDataTrans.append("UserCreator",transbData.resGetDoctoscc.data.idUsuario);
-        formDataTrans.append("DateLastUpdate",transbData.fecha);
+        formDataTrans.append("DateLastUpdate", transbData.fecha);
         formDataTrans.append("UserLastUpdater",transbData.resGetDoctoscc.data.idUsuario);
       }
     }
@@ -122,12 +122,12 @@ export async function postDoctoscc(DoctosccData) {
     const formDataDoc = new FormData();
     formDataDoc.append("UserCreator",DoctosccData.resGetDoctoscc.data.idUsuario);
     formDataDoc.append("Cliente", DoctosccData.resGetDoctoscc.data.cliente);
-    formDataDoc.append("Folio", DoctosccData.resGetDoctoscc.data.folio); // el folio debe autoincrementar en 1 //corregir esto
+    formDataDoc.append("Folio", DoctosccData.folioIncrementado); // el folio debe autoincrementar en 1????????? //corregir esto
     formDataDoc.append("IdEmpresa", DoctosccData.resGetDoctoscc.data.idEmpresa);
     formDataDoc.append("FechaFactura", DoctosccData.fecha);
     formDataDoc.append("IdUsuario", DoctosccData.resGetDoctoscc.data.idUsuario);
-    formDataDoc.append("Tipo", 12); 
-    formDataDoc.append("Moneda", DoctosccData.resGetDoctoscc.data.moneda);//corregir esto
+    formDataDoc.append("Tipo", 12);
+    formDataDoc.append("Moneda", DoctosccData.resGetDoctoscc.data.moneda); //corregir esto, moneda 2
     formDataDoc.append("Vendedor", DoctosccData.resGetDoctoscc.data.idUsuario);
     formDataDoc.append("Metodopago", DoctosccData.FormaPago);
     formDataDoc.append("FechaHoraGenerado", DoctosccData.fecha);
@@ -135,7 +135,7 @@ export async function postDoctoscc(DoctosccData) {
     formDataDoc.append("DateLastUpdate", DoctosccData.fecha);
     formDataDoc.append("FechaPago", DoctosccData.fecha);
     formDataDoc.append("IdSucursal",DoctosccData.resGetDoctoscc.data.idSucursal);
-    formDataDoc.append("Almacen", DoctosccData.resGetDoctoscc.data.almacen); //dato obligatorio por FK 
+    formDataDoc.append("Almacen", DoctosccData.resGetDoctoscc.data.almacen); //dato obligatorio por FK, checar esto!! no deja registrar null
     const responsesDocc = await axios({
       headers: { "Content-Type": "application/json" },
       url: `${BaseUrl}api/Ingreso/Doctoscc/Registrar`,
@@ -151,11 +151,11 @@ export async function postDoctoscc(DoctosccData) {
 export async function postDoctosccDet(DoctosccDetData) {
   try {
     const formDataDet = new FormData();
-    formDataDet.append("IdFactura",DoctosccDetData.statusDoctoscc.data.idFactura); //debe colocar el nuevo id de doctoscc
+    formDataDet.append("IdFactura",DoctosccDetData.statusDoctoscc.data.idFactura); //nuevo id de doctoscc
     formDataDet.append("Cantidad", 1);
     formDataDet.append("Descripcion", "Pago");
     formDataDet.append("Preciou", 0);
-    formDataDet.append("Idprodserv", 60071);//debe ser null //corregir esto
+    formDataDet.append("Idprodserv", 60071); //debe ser null //corregir esto
     const responsesDet = await axios({
       headers: { "Content-Type": "application/json" },
       url: `${BaseUrl}api/Ingreso/Det/Registrar`,
@@ -186,28 +186,30 @@ export async function postingresoComprobante(ingresoComprobanteData) {
 //registrar ingreso
 export async function postIngreso(IngresoData) {
   try {
-    const formData = new FormData();
-    formData.append("Folio",IngresoData.resGetDoctoscc.data.folio);//corregir esto
-    formData.append("UserCreator",IngresoData.resGetDoctoscc.data.idUsuario);
-    formData.append("IdCliente",IngresoData.resGetDoctoscc.data.cliente);
-    formData.append("Tipo",1);
-    formData.append("IdEmpresa" ,IngresoData.resGetDoctoscc.data.idEmpresa);
-    formData.append("Fecha", IngresoData.fecha);
-    formData.append("ImportePago",IngresoData.importe_pago);
-    formData.append("FormaPago",IngresoData.FormaPago);
-    formData.append("Banco",IngresoData.resGetBancos.data.idBanco);
-    formData.append("Notas",IngresoData.notas);
-    formData.append("Moneda",IngresoData.resGetBancos.data.moneda);//corregir esto
-    formData.append("IdDeposito", IngresoData.statusTransbancaria.data.idTransbancaria);
-    formData.append("IdAlmacen",IngresoData.resGetDoctoscc.data.idAlmacen);
-    formData.append("IdIngresoComprobante",IngresoData.statusIngresoComprobante.data.idIngresoComprobante);
- const responses = await axios({
+    const formDataIngreso = new FormData();
+    formDataIngreso.append("Folio", IngresoData.resGetDoctoscc.data.folio); //corregir esto, folio autoincrementable??
+    formDataIngreso.append("UserCreator",IngresoData.resGetDoctoscc.data.idUsuario);
+    formDataIngreso.append("DateLastUpdate", IngresoData.fecha);
+    formDataIngreso.append("UserLastUpdater", IngresoData.resGetDoctoscc.data.idUsuario);
+    formDataIngreso.append("IdCliente",IngresoData.resGetDoctoscc.data.cliente);
+    formDataIngreso.append("Tipo", IngresoData.resGetDoctoscc.data.tipo);
+    formDataIngreso.append("IdEmpresa",IngresoData.resGetDoctoscc.data.idEmpresa);
+    formDataIngreso.append("Fecha", IngresoData.fecha);
+    formDataIngreso.append("ImportePago", IngresoData.importe_pago);
+    formDataIngreso.append("FormaPago", IngresoData.FormaPago);
+    formDataIngreso.append("Banco", IngresoData.resGetBancos.data.idBanco);
+    formDataIngreso.append("Notas", IngresoData.notas);
+    formDataIngreso.append("Moneda", IngresoData.resGetBancos.data.moneda); //corregir esto moneda 2
+    formDataIngreso.append("IdDeposito", IngresoData.statusTransbancaria.data.idTransbancaria);
+    formDataIngreso.append("IdAlmacen", IngresoData.resGetDoctoscc.data.idAlmacen);
+    formDataIngreso.append("IdIngresoComprobante",IngresoData.statusIngresoComprobante.data.idIngresoComprobante);
+    const responsesIng = await axios({
       headers: { "Content-Type": "application/json" },
       url: `${BaseUrl}api/Ingreso/Registrar`,
       method: "POST",
-      data: formData,
+      data: formDataIngreso,
     });
-    return responses;
+    return responsesIng;
   } catch (e) {
     console.log(e);
   }
@@ -215,24 +217,86 @@ export async function postIngreso(IngresoData) {
 //Actualizar ingresoComprobante
 export async function putIngresoComprobante(ingresoComprobanteData) {
   try {
-    const idIngComprobante =ingresoComprobante.statusIngresoComprobante.idIngresoComprobante;
-    const formDataIngComp = new FormDataIngComp();
-    formDataIngComp.append("DateRecord", ingresoComprobanteData.fecha);
-    formDataIngComp.append("FechaPago", ingresoComprobanteData.fecha);
-    formDataIngComp.append("FormaPago", ingresoComprobanteData.FormaPago);
-    formDataIngComp.append("Moneda", 2);//corregir esto
-    formDataIngComp.append("TipoCambio", 0);//corregir esto
-    formDataIngComp.append("Monto", ingresoComprobanteData.importe_pago);
-    formDataIngComp.append("BancoBeneficiario",ingresoComprobanteData.cuentaBeneficiara);
-    const responsesIngComp = await axios({
+    const idIngComprobante =ingresoComprobanteData.statusIngresoComprobante.data.idIngresoComprobante;
+    const formDataPutIngComp = new FormData();
+    formDataPutIngComp.append("IdDoctoscc",ingresoComprobanteData.statusDoctoscc.data.idFactura);
+    formDataPutIngComp.append("DateRecord", ingresoComprobanteData.fecha);
+    formDataPutIngComp.append("FechaPago", ingresoComprobanteData.fecha);
+    formDataPutIngComp.append("FormaPago", ingresoComprobanteData.FormaPago);
+    formDataPutIngComp.append("Moneda", 2); //corregir esto
+    formDataPutIngComp.append("TipoCambio", 0); //corregir esto
+    formDataPutIngComp.append("Monto", ingresoComprobanteData.importe_pago);
+    formDataPutIngComp.append("BancoBeneficiario",ingresoComprobanteData.cuentaBeneficiara );
+    const responsesPutIngComp = await axios({
       headers: { "Content-Type": "application/json" },
       url: `${BaseUrl}api/Ingreso/IngresoComprobante/Actualizar/${idIngComprobante}`,
       method: "PUT",
-      data: formDataIngComp,
+      data: formDataPutIngComp,
     });
-    return responsesIngComp;
+    return responsesPutIngComp;
   } catch (e) {
     console.log(e);
   }
 }
 //registrar Abono
+export async function postAbono(AbonoData) {
+  try {
+    const formDataAbono = new FormData();
+    formDataAbono.append("Imppago", AbonoData.importe_pago);
+    formDataAbono.append("Cargo", 160144); //aqui que va?
+    formDataAbono.append("Fecha", AbonoData.fecha);
+    formDataAbono.append("Formapago", AbonoData.FormaPago);
+    formDataAbono.append("Cobrador", AbonoData.statusDoctoscc.data.idUsuario);
+    formDataAbono.append("Referencia", "");
+    formDataAbono.append("Comentarios", "");
+    formDataAbono.append("IdIngreso",AbonoData.statusIngresoRegistro.data.idIngreso);
+    formDataAbono.append("NumParcialidad", 1); //aqui que va?
+    formDataAbono.append("SaldoAnt",AbonoData.resGetDataClave.data.importePago);
+    formDataAbono.append("TipoCambioFac", 0);
+    formDataAbono.append( "UserCreator", AbonoData.statusDoctoscc.data.idUsuario);
+    const responsesAbono = await axios({
+      headers: { "Content-Type": "application/json" },
+      url: `${BaseUrl}api/Ingreso/Abono/Registrar`,
+      method: "POST",
+      data: formDataAbono,
+    });
+    return responsesAbono;
+  } catch (e) {
+    console.log(e);
+  }
+}
+//registrar tarea
+export async function postTarea(TareaData) {
+  try {
+    const formDataTarea = new FormData();
+    formDataTarea.append("IdReceptor", 2211); //--que va
+    formDataTarea.append("Tipo", 1); //-- que va
+    formDataTarea.append("FechaInicio", TareaData.fecha);
+    formDataTarea.append("FechaFin", TareaData.fecha); //-- es la misma hora??
+    formDataTarea.append("FechaCreacion", TareaData.fecha);
+    formDataTarea.append("Asunto", ""); //-- que va
+    formDataTarea.append("Comentarios", ""); //-- que va
+    formDataTarea.append("Origen", ""); //-- que va
+    formDataTarea.append("Hr", 0); //-- que va
+    formDataTarea.append("Status", 1); //-- que va
+    formDataTarea.append("IdCliente", TareaData.statusDoctoscc.data.cliente);
+    formDataTarea.append("Descripcion", ""); //-- que va
+    formDataTarea.append("NivelPrioridad", 1); //-- que va
+    formDataTarea.append("Daterecord", TareaData.fecha);
+    formDataTarea.append("Datelastupdater", TareaData.fecha);
+    formDataTarea.append("Userlastupdate",TareaData.statusDoctoscc.data.idUsuario);
+    formDataTarea.append("Usercreator",TareaData.statusDoctoscc.data.idUsuario);
+    formDataTarea.append("IdSucursal",TareaData.statusDoctoscc.data.idSucursal);
+    formDataTarea.append("IdDoctoscc",TareaData.statusIngresoComprobante.data.idDoctoscc); //el iddoctoscc que esta en ingresocomprobante?
+    formDataTarea.append("FechaCompromiso", TareaData.fecha); //-- que va
+    const responsesTarea = await axios({
+      headers: { "Content-Type": "application/json" },
+      url: `${BaseUrl}api/Ingreso/Tarea/Registrar`,
+      method: "POST",
+      data: formDataTarea,
+    });
+    return responsesTarea;
+  } catch (e) {
+    console.log(e);
+  }
+}

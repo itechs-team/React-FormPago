@@ -3,16 +3,20 @@ import {
   getBanco,
   getClave,
   getDoctoscc,
+  getFolioDoctoscc,
   getFormaPagoList,
+  postAbono,
   postDoctoscc,
   postDoctosccDet,
+  postIngreso,
   postingresoComprobante,
+  postTarea,
   postTransbancaria,
   putIngresoComprobante,
 } from "../services/index";
 import swal from "sweetalert";
 
-function FormularioPago({ handleSubmit }) {
+function FormularioPago() {
   const [btnActivo, SetBtnActivo] = useState(false);
   const [formaPago, setFormaPago] = useState([]);
   const [formValues, setFormValues] = useState({
@@ -79,12 +83,16 @@ function FormularioPago({ handleSubmit }) {
         } else {
           const statusTransbancaria =await postTransbancaria({ ...formValues, resGetDoctoscc, resGetBancos });
           if(statusTransbancaria.status >= 200 && statusTransbancaria.status <= 250  ){
-            const statusDoctoscc= await postDoctoscc({ ...formValues, resGetDoctoscc, resGetBancos });
+            const folioDoctoscc= await getFolioDoctoscc ({resGetDoctoscc})
+            const resultFolioDoc = folioDoctoscc.data.folio
+            const folioIncrementado = resultFolioDoc+1;
+            const statusDoctoscc= await postDoctoscc({ ...formValues, resGetDoctoscc, resGetBancos,folioIncrementado });
             const statusDoctosccDet = await postDoctosccDet({ ...formValues, resGetDoctoscc, resGetBancos,statusDoctoscc });// aqui me quede
             const statusIngresoComprobante = await postingresoComprobante({statusDoctoscc });
-            await handleSubmit({ ...formValues, resGetDoctoscc, resGetBancos,statusIngresoComprobante,statusTransbancaria });
-            await putIngresoComprobante({ ...formValues, resGetDoctoscc, resGetBancos,statusDoctoscc, statusIngresoComprobante});
-
+            const statusIngresoRegistro = await postIngreso({ ...formValues, resGetDoctoscc, resGetBancos,statusIngresoComprobante,statusTransbancaria });
+            const putIngComp = await putIngresoComprobante({ ...formValues, resGetDoctoscc, resGetBancos,statusDoctoscc, statusIngresoComprobante});
+            const statusPostAbono = await  postAbono({...formValues,statusDoctoscc,statusIngresoRegistro,resGetDataClave});
+            const statusPostTarea = await postTarea({...formValues,statusDoctoscc,statusIngresoComprobante});
             setFormValues({
               clave: "",
               importe_pago: "",
@@ -147,17 +155,6 @@ function FormularioPago({ handleSubmit }) {
   //     handleSubmit({ ...formValues /*, image: inputFileRef.current.files*/ });
   //   }
   // };
-
-  // useEffect(() => {
-  //   async function loadIngreso() {
-  //     const response = await getIngreso();
-  //     // console.log(response);
-  //     if (response.status === 200) {
-  //       setIngreso(response.data.ingreso);
-  //     }
-  //   }
-  //   loadIngreso();
-  // }, []);
 
   const handleClickActivar = () => {
     const SelectFormaPago = formValues.FormaPago;
