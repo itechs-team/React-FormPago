@@ -7,8 +7,8 @@ function App() {
   //   postIngreso(dataForm)
   // };
   return (
-    <main className="p-5  ">
-      <div className="container   bg-secondary text-white rounded-3   ">
+    <main className="p-5">
+      <div className="container  bg-white shadow  text-white rounded-3   ">
         <FormularioPago />
          {/* handleSubmit={handleSubmit} */}
       </div>

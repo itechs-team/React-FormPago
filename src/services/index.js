@@ -31,6 +31,18 @@ export async function getDoctoscc(dataIdFactura) {
   }
 }
 
+//ver todos los bancos 
+export async function getBancoSinID() {
+  try {
+    const response = await axios({
+      url: `${BaseUrl}api/Banco/Ver`,
+      method: "GET",
+    });
+    return response;
+  } catch (e) {
+    console.log(e);
+  }
+}
 //ver bancos con el id del cliente
 export async function getBanco(DataBanco) {
   try {
@@ -56,12 +68,27 @@ export async function getFormaPagoList() {
     console.log(e);
   }
 }
-//ultimo folio
-export async function getFolioDoctoscc(FolioData) {
+//ultimo folio Doctoscc
+export async function getFolioDoctoscc(FolioDocData) {
   try {
-    const tipo = FolioData.resGetDoctoscc.data.tipo;
+    const tipo = FolioDocData.resGetDoctoscc.data.tipo;
     const responseFolio = await axios({
       url: `${BaseUrl}api/Doctoscc/Ver/${tipo}`,
+      method: "GET",
+    });
+    return responseFolio;
+  } catch (e) {
+    console.log(e);
+  }
+}
+//ultimo folio Ingreso
+export async function getFolioIngreso(FolioIngresoData) {
+  try {
+    //folio constante o variable
+    const tipo = FolioIngresoData.resGetDataClave.data.tipo; // el tipo debe ser 1??? varibale o constante //el tipo es el mismo que en doctoscc que al de ingreso?
+    const idEmpresa = FolioIngresoData.statusDoctoscc.data.idEmpresa;
+    const responseFolio = await axios({
+      url: `${BaseUrl}api/Ingreso/VerFolio/${tipo}/${idEmpresa}`,
       method: "GET",
     });
     return responseFolio;
@@ -75,7 +102,7 @@ export async function postTransbancaria(transbData) {
   try {
     const formDataTrans = new FormData();
     if (transbData.FormaPago != 1) {
-      formDataTrans.append("Cuenta", transbData.resGetBancos.data.idBanco); //corregir esto, cuenta seleccionada por el usuario
+      formDataTrans.append("Cuenta", transbData.cuentaBeneficiara); //corregido... por ahora
       formDataTrans.append("Referencia", "");
       formDataTrans.append("Qty", transbData.importe_pago);
       formDataTrans.append("Formapago", transbData.FormaPago);
@@ -122,7 +149,7 @@ export async function postDoctoscc(DoctosccData) {
     const formDataDoc = new FormData();
     formDataDoc.append("UserCreator",DoctosccData.resGetDoctoscc.data.idUsuario);
     formDataDoc.append("Cliente", DoctosccData.resGetDoctoscc.data.cliente);
-    formDataDoc.append("Folio", DoctosccData.folioIncrementado); // el folio debe autoincrementar en 1????????? //corregir esto
+    formDataDoc.append("Folio", DoctosccData.folioIncrementado); 
     formDataDoc.append("IdEmpresa", DoctosccData.resGetDoctoscc.data.idEmpresa);
     formDataDoc.append("FechaFactura", DoctosccData.fecha);
     formDataDoc.append("IdUsuario", DoctosccData.resGetDoctoscc.data.idUsuario);
@@ -151,11 +178,11 @@ export async function postDoctoscc(DoctosccData) {
 export async function postDoctosccDet(DoctosccDetData) {
   try {
     const formDataDet = new FormData();
-    formDataDet.append("IdFactura",DoctosccDetData.statusDoctoscc.data.idFactura); //nuevo id de doctoscc
+    formDataDet.append("IdFactura",DoctosccDetData.statusDoctoscc.data.idFactura); 
     formDataDet.append("Cantidad", 1);
     formDataDet.append("Descripcion", "Pago");
     formDataDet.append("Preciou", 0);
-    formDataDet.append("Idprodserv", 60071); //debe ser null //corregir esto
+    formDataDet.append("Idprodserv", 60071); //debe ser null //corregir esto 
     const responsesDet = await axios({
       headers: { "Content-Type": "application/json" },
       url: `${BaseUrl}api/Ingreso/Det/Registrar`,
@@ -187,12 +214,12 @@ export async function postingresoComprobante(ingresoComprobanteData) {
 export async function postIngreso(IngresoData) {
   try {
     const formDataIngreso = new FormData();
-    formDataIngreso.append("Folio", IngresoData.resGetDoctoscc.data.folio); //corregir esto, folio autoincrementable??
+    formDataIngreso.append("Folio", IngresoData.folioIncrementadoIngreso); //corregido "creo"
     formDataIngreso.append("UserCreator",IngresoData.resGetDoctoscc.data.idUsuario);
     formDataIngreso.append("DateLastUpdate", IngresoData.fecha);
     formDataIngreso.append("UserLastUpdater", IngresoData.resGetDoctoscc.data.idUsuario);
     formDataIngreso.append("IdCliente",IngresoData.resGetDoctoscc.data.cliente);
-    formDataIngreso.append("Tipo", IngresoData.resGetDoctoscc.data.tipo);
+    formDataIngreso.append("Tipo", IngresoData.resGetDoctoscc.data.tipo);// cambia el tipo??? que tipo va?
     formDataIngreso.append("IdEmpresa",IngresoData.resGetDoctoscc.data.idEmpresa);
     formDataIngreso.append("Fecha", IngresoData.fecha);
     formDataIngreso.append("ImportePago", IngresoData.importe_pago);
@@ -201,7 +228,7 @@ export async function postIngreso(IngresoData) {
     formDataIngreso.append("Notas", IngresoData.notas);
     formDataIngreso.append("Moneda", IngresoData.resGetBancos.data.moneda); //corregir esto moneda 2
     formDataIngreso.append("IdDeposito", IngresoData.statusTransbancaria.data.idTransbancaria);
-    formDataIngreso.append("IdAlmacen", IngresoData.resGetDoctoscc.data.idAlmacen);
+    // formDataIngreso.append("IdAlmacen", IngresoData.resGetDoctoscc.data.idAlmacen); //checar esto. el campo esta null y me marca error
     formDataIngreso.append("IdIngresoComprobante",IngresoData.statusIngresoComprobante.data.idIngresoComprobante);
     const responsesIng = await axios({
       headers: { "Content-Type": "application/json" },
@@ -243,7 +270,7 @@ export async function postAbono(AbonoData) {
   try {
     const formDataAbono = new FormData();
     formDataAbono.append("Imppago", AbonoData.importe_pago);
-    formDataAbono.append("Cargo", 160144); //aqui que va?
+    formDataAbono.append("Cargo", 160144); //aqui que va? NO SE A QUE VA VINCULADO
     formDataAbono.append("Fecha", AbonoData.fecha);
     formDataAbono.append("Formapago", AbonoData.FormaPago);
     formDataAbono.append("Cobrador", AbonoData.statusDoctoscc.data.idUsuario);
@@ -287,7 +314,7 @@ export async function postTarea(TareaData) {
     formDataTarea.append("Userlastupdate",TareaData.statusDoctoscc.data.idUsuario);
     formDataTarea.append("Usercreator",TareaData.statusDoctoscc.data.idUsuario);
     formDataTarea.append("IdSucursal",TareaData.statusDoctoscc.data.idSucursal);
-    formDataTarea.append("IdDoctoscc",TareaData.statusIngresoComprobante.data.idDoctoscc); //el iddoctoscc que esta en ingresocomprobante?
+    formDataTarea.append("IdDoctoscc",TareaData.statusIngresoComprobante.data.idDoctoscc); //el iddoctoscc que esta en ingresocomprobante? o el id de la tabla docotscc
     formDataTarea.append("FechaCompromiso", TareaData.fecha); //-- que va
     const responsesTarea = await axios({
       headers: { "Content-Type": "application/json" },

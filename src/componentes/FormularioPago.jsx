@@ -1,9 +1,11 @@
 import React, { Fragment, useState, useEffect, useRef } from "react";
 import {
   getBanco,
+  getBancoSinID,
   getClave,
   getDoctoscc,
   getFolioDoctoscc,
+  getFolioIngreso,
   getFormaPagoList,
   postAbono,
   postDoctoscc,
@@ -19,6 +21,7 @@ import swal from "sweetalert";
 function FormularioPago() {
   const [btnActivo, SetBtnActivo] = useState(false);
   const [formaPago, setFormaPago] = useState([]);
+  const [banco, setBanco] = useState([]);//puede o no puede ir
   const [formValues, setFormValues] = useState({
     clave: "",
     importe_pago: "",
@@ -37,6 +40,17 @@ function FormularioPago() {
       }
     }
     VerFormaPago();
+  }, []);
+
+  useEffect(() => {
+    async function VerBancos() {
+      const response = await getBancoSinID();
+      // console.log(response);
+      if (response.status === 200) {
+        setBanco(response.data);
+      }
+    }
+    VerBancos();
   }, []);
 
   const inputFileRef = useRef();
@@ -83,15 +97,27 @@ function FormularioPago() {
         } else {
           const statusTransbancaria =await postTransbancaria({ ...formValues, resGetDoctoscc, resGetBancos });
           if(statusTransbancaria.status >= 200 && statusTransbancaria.status <= 250  ){
+            //ver folio y autoincrementarlo en 1 DOCTOSCC
             const folioDoctoscc= await getFolioDoctoscc ({resGetDoctoscc})
             const resultFolioDoc = folioDoctoscc.data.folio
             const folioIncrementado = resultFolioDoc+1;
+            //post doctoscc
             const statusDoctoscc= await postDoctoscc({ ...formValues, resGetDoctoscc, resGetBancos,folioIncrementado });
-            const statusDoctosccDet = await postDoctosccDet({ ...formValues, resGetDoctoscc, resGetBancos,statusDoctoscc });// aqui me quede
+            //ver folio y autoincrementarlo en 1 Ingreso
+            const folioIngreso= await getFolioIngreso({resGetDataClave,statusDoctoscc});
+            const resultFolioIngreso = folioIngreso.data.folio
+            const folioIncrementadoIngreso = resultFolioIngreso+1;
+            //post doctosccdet
+            const statusDoctosccDet = await postDoctosccDet({ ...formValues, resGetDoctoscc, resGetBancos,statusDoctoscc });
+            //post ingresoComprobante
             const statusIngresoComprobante = await postingresoComprobante({statusDoctoscc });
-            const statusIngresoRegistro = await postIngreso({ ...formValues, resGetDoctoscc, resGetBancos,statusIngresoComprobante,statusTransbancaria });
+            //post ingreso
+            const statusIngresoRegistro = await postIngreso({ ...formValues, resGetDoctoscc, resGetBancos,statusIngresoComprobante,statusTransbancaria, folioIncrementadoIngreso });
+            //put IngresoComprobante
             const putIngComp = await putIngresoComprobante({ ...formValues, resGetDoctoscc, resGetBancos,statusDoctoscc, statusIngresoComprobante});
+            //post abono
             const statusPostAbono = await  postAbono({...formValues,statusDoctoscc,statusIngresoRegistro,resGetDataClave});
+            //post Tarea
             const statusPostTarea = await postTarea({...formValues,statusDoctoscc,statusIngresoComprobante});
             setFormValues({
               clave: "",
@@ -158,12 +184,11 @@ function FormularioPago() {
 
   const handleClickActivar = () => {
     const SelectFormaPago = formValues.FormaPago;
-    if (SelectFormaPago == "1") {
+    if (SelectFormaPago == "1" || SelectFormaPago == "3"  ) {
       SetBtnActivo(false);
     } else {
       if (
         SelectFormaPago == "2" ||
-        SelectFormaPago == "3" ||
         SelectFormaPago == "4"
       ) {
         SetBtnActivo(true);
@@ -173,7 +198,7 @@ function FormularioPago() {
 
   return (
     <Fragment>
-      <h1 className="mt-3 p-4 text-center ">REGISTRO DE PAGO</h1>
+      <h1 className="fw-bold mt-3 py-4 text-center text-primary">REGISTRO DE PAGO</h1>
       <form
         id="formIngresoPago"
         className="form-floating row g-3 needs-validation"
@@ -192,7 +217,7 @@ function FormularioPago() {
               autoFocus
               required
             />
-            <label htmlFor="floatingInputValue" className="text-dark p-3 ">
+            <label htmlFor="floatingInputValue" className="text-dark  p-3 ">
               Clave*
             </label>
           </div>
@@ -236,7 +261,7 @@ function FormularioPago() {
           <br></br>
           <br></br>
           <br></br>
-          <div className="form-floating col-sm-12 col-md-6 col-lg-6 col-xl-6 pt-1">
+          {/* <div className="form-floating col-sm-12 col-md-6 col-lg-6 col-xl-6 pt-1">
             <select
               onChange={handleChange}
               name="cuentaBeneficiara "
@@ -246,11 +271,24 @@ function FormularioPago() {
               <option defaultValue>Seleccionar cuenta</option>
               <option value={1}>1111</option>
               <option value={2}>2222</option>
-              {formaPago.map((elemento) => (
-                <option key={elemento.idFormapago} value={elemento.idFormapago}>
-                  {elemento.formapago1}
+            
+            </select>
+            <label className=" text-dark p-3 ">Cuenta Beneficiaria*</label>
+          </div> */}
+          <div className="form-floating col-sm-12 col-md-6 col-lg-6 col-xl-6 pt-1">
+            <select
+              onChange={handleChange}
+              name="cuentaBeneficiara "
+              className="form-select"
+              disabled={!btnActivo}
+            >
+              <option defaultValue>Seleccionar cuenta</option>
+              {banco.map((elemento) => (
+                <option key={elemento.idBanco} value={elemento.idBanco}>
+                  {elemento.cuenta}
                 </option>
               ))}
+            
             </select>
             <label className=" text-dark p-3 ">Cuenta Beneficiaria*</label>
           </div>
@@ -296,15 +334,15 @@ function FormularioPago() {
           <br></br>
           <br></br>
           <br></br>
-          <div className=" form-group d-grid gap-2 d-md-flex justify-content-md-center p-3">
+          <div className=" d-grid py-3">
             <button
-              className="btn btn-success me-md-2 text-white"
+              className="btn bg-primary me-md-2 mb-1 text-white"
               type="submit"
             >
               Enviar
             </button>
             <button
-              className="btn btn-danger me-md-2"
+              className="btn btn-danger me-md-2 mb-1"
               type="button"
               onClick={() => handleClick()}
             >
