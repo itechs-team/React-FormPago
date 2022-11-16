@@ -96,7 +96,42 @@ export async function getFolioIngreso(FolioIngresoData) {
     console.log(e);
   }
 }
-
+//------------------------------------------------------------------------
+export async function getDoctosccDetFacturas(DetFacturasData) {
+  try{
+    const id_Factura = DetFacturasData.resGetDoctoscc.data.idFactura;
+    const responseDetalle = await axios ({
+    url: `${BaseUrl}api/Ingreso/DoctosccDet/VerDet/${id_Factura}`,
+    method: "GET"
+  });
+  return responseDetalle;
+  }catch(e){
+    console.log(e)
+  }
+}
+export async function getCargos(CargosData) {
+  try{
+    const arrayDetFacturas = [CargosData.DetallesFacturas.data]
+    for (let i = 0; i < arrayDetFacturas.length; i++) {
+      const detalles = arrayDetFacturas[i];
+      console.log(detalles)
+      for (let y = 0; y < detalles.length; y++) {
+        const DetallesFacturas = detalles[y];
+        const idDetFactura = DetallesFacturas.idDetallefatura;
+        console.log(idDetFactura)
+        const responseDetalle = await axios ({
+          url: `${BaseUrl}api/Ingreso/Cargo/Ver/${idDetFactura}`,
+          method: "GET"
+        });
+        return responseDetalle;
+        console.log(responseDetalle)
+      }
+    }
+  }catch(e){
+    console.log(e)
+  }
+}
+//------------------------------------------------------------------------
 //registrar transBancaria
 export async function postTransbancaria(transbData) {
   try {
@@ -270,14 +305,14 @@ export async function postAbono(AbonoData) {
   try {
     const formDataAbono = new FormData();
     formDataAbono.append("Imppago", AbonoData.importe_pago);
-    formDataAbono.append("Cargo", 160144); //aqui que va? NO SE A QUE VA VINCULADO
+    formDataAbono.append("Cargo", 160144); //aqui que va? NO SE A QUE VA VINCULADO //
     formDataAbono.append("Fecha", AbonoData.fecha);
     formDataAbono.append("Formapago", AbonoData.FormaPago);
     formDataAbono.append("Cobrador", AbonoData.statusDoctoscc.data.idUsuario);
     formDataAbono.append("Referencia", "");
     formDataAbono.append("Comentarios", "");
     formDataAbono.append("IdIngreso",AbonoData.statusIngresoRegistro.data.idIngreso);
-    formDataAbono.append("NumParcialidad", 1); //aqui que va?
+    formDataAbono.append("NumParcialidad", 1); 
     formDataAbono.append("SaldoAnt",AbonoData.resGetDataClave.data.importePago);
     formDataAbono.append("TipoCambioFac", 0);
     formDataAbono.append( "UserCreator", AbonoData.statusDoctoscc.data.idUsuario);
@@ -296,12 +331,12 @@ export async function postAbono(AbonoData) {
 export async function postTarea(TareaData) {
   try {
     const formDataTarea = new FormData();
-    formDataTarea.append("IdReceptor", 2211); //--que va
-    formDataTarea.append("Tipo", 1); //-- que va
+    formDataTarea.append("IdReceptor", 116); 
+    formDataTarea.append("Tipo", 4); 
     formDataTarea.append("FechaInicio", TareaData.fecha);
-    formDataTarea.append("FechaFin", TareaData.fecha); //-- es la misma hora??
+    formDataTarea.append("FechaFin", TareaData.fechaDiaMasUno);
     formDataTarea.append("FechaCreacion", TareaData.fecha);
-    formDataTarea.append("Asunto", ""); //-- que va
+    formDataTarea.append("Asunto", "Registro Pago"); 
     formDataTarea.append("Comentarios", ""); //-- que va
     formDataTarea.append("Origen", ""); //-- que va
     formDataTarea.append("Hr", 0); //-- que va
@@ -315,7 +350,7 @@ export async function postTarea(TareaData) {
     formDataTarea.append("Usercreator",TareaData.statusDoctoscc.data.idUsuario);
     formDataTarea.append("IdSucursal",TareaData.statusDoctoscc.data.idSucursal);
     formDataTarea.append("IdDoctoscc",TareaData.statusIngresoComprobante.data.idDoctoscc); //el iddoctoscc que esta en ingresocomprobante? o el id de la tabla docotscc
-    formDataTarea.append("FechaCompromiso", TareaData.fecha); //-- que va
+    formDataTarea.append("FechaCompromiso", TareaData.fechaDiaMasUno); //-- que va
     const responsesTarea = await axios({
       headers: { "Content-Type": "application/json" },
       url: `${BaseUrl}api/Ingreso/Tarea/Registrar`,
@@ -327,3 +362,7 @@ export async function postTarea(TareaData) {
     console.log(e);
   }
 }
+
+
+//saldaporcliente
+//ingreso

@@ -1,11 +1,6 @@
 import React, { Fragment, useState, useEffect, useRef } from "react";
-import {
-  getBanco,
-  getBancoSinID,
-  getClave,
-  getDoctoscc,
-  getFolioDoctoscc,
-  getFolioIngreso,
+import {getBanco,getBancoSinID,getClave,
+  getDoctoscc,getFolioDoctoscc,getFolioIngreso,
   getFormaPagoList,
   postAbono,
   postDoctoscc,
@@ -21,14 +16,14 @@ import swal from "sweetalert";
 function FormularioPago() {
   const [btnActivo, SetBtnActivo] = useState(false);
   const [formaPago, setFormaPago] = useState([]);
-  const [banco, setBanco] = useState([]);//puede o no puede ir
+  const [banco, setBanco] = useState([]); //puede o no puede ir
   const [formValues, setFormValues] = useState({
     clave: "",
     importe_pago: "",
     fecha: "",
     notas: "",
     FormaPago: "",
-    cuentaBeneficiara : "",
+    cuentaBeneficiara: "",
   });
 
   useEffect(() => {
@@ -63,6 +58,7 @@ function FormularioPago() {
 
   const _handleSubmit = async (e) => {
     e.preventDefault();
+
     const resGetDataClave = await getClave({ ...formValues });
     if (resGetDataClave == null) {
       swal({
@@ -72,12 +68,15 @@ function FormularioPago() {
       });
     }
     const resGetOnlyClave = resGetDataClave.data.clave;
-    const resGetOnlyImporte = resGetDataClave.data.importePago;
+    // const resGetOnlyImporte = resGetDataClave.data.importePago;
     try {
       //Validamos la calve y el importe
+      const Saldo = resGetDataClave.data.saldo;
+      const resGetOnlyImporte = formValues.importe_pago;
       if (
         resGetOnlyClave == formValues.clave &&
-        resGetOnlyImporte == formValues.importe_pago
+        Saldo != 0 &&
+        resGetOnlyImporte == Saldo
       ) {
         const resGetIdFactura = resGetDataClave.data.idFactura;
         const resGetDoctoscc = await getDoctoscc(resGetIdFactura);
@@ -88,6 +87,7 @@ function FormularioPago() {
         const importeForm = formValues.importe_pago;
         const formapagoForm = formValues.FormaPago;
         //valdiamos campos vacios
+
         if (fechaForm == "" || importeForm == "" || formapagoForm == "") {
           swal({
             title: "",
@@ -95,37 +95,93 @@ function FormularioPago() {
             icon: "warning",
           });
         } else {
-          const statusTransbancaria =await postTransbancaria({ ...formValues, resGetDoctoscc, resGetBancos });
-          if(statusTransbancaria.status >= 200 && statusTransbancaria.status <= 250  ){
-            //ver folio y autoincrementarlo en 1 DOCTOSCC
-            const folioDoctoscc= await getFolioDoctoscc ({resGetDoctoscc})
-            const resultFolioDoc = folioDoctoscc.data.folio
-            const folioIncrementado = resultFolioDoc+1;
+          const statusTransbancaria = await postTransbancaria({
+            ...formValues,
+            resGetDoctoscc,
+            resGetBancos,
+          });
+          if (
+            statusTransbancaria.status >= 200 &&
+            statusTransbancaria.status <= 250
+          ) {
+            //ver folio y autoincrementarlo en 1 -DOCTOSCC
+            const folioDoctoscc = await getFolioDoctoscc({ resGetDoctoscc });
+            const resultFolioDoc = folioDoctoscc.data.folio;
+            const folioIncrementado = resultFolioDoc + 1;
             //post doctoscc
-            const statusDoctoscc= await postDoctoscc({ ...formValues, resGetDoctoscc, resGetBancos,folioIncrementado });
+            const statusDoctoscc = await postDoctoscc({
+              ...formValues,
+              resGetDoctoscc,
+              resGetBancos,
+              folioIncrementado,
+            });
+            //incrementar en un dia la fecha
+            const fechaData = formValues.fecha;
+            const fechaDiaMasUno = fechaData + 1;
             //ver folio y autoincrementarlo en 1 Ingreso
-            const folioIngreso= await getFolioIngreso({resGetDataClave,statusDoctoscc});
-            const resultFolioIngreso = folioIngreso.data.folio
-            const folioIncrementadoIngreso = resultFolioIngreso+1;
+            const folioIngreso = await getFolioIngreso({
+              resGetDataClave,
+              statusDoctoscc,
+            });
+            const resultFolioIngreso = folioIngreso.data.folio;
+            const folioIncrementadoIngreso = resultFolioIngreso + 1;
+            // //ver deatalles de las facturas
+            // const DetallesFacturas = await getDoctosccDetFacturas({resGetDoctoscc});
+            // console.log(DetallesFacturas);
+            // //ver los cargos de los detalles de las facturas
+            // const cargosDeLasFacturas = await getCargos({DetallesFacturas})
+            // console.log(cargosDeLasFacturas);
+
             //post doctosccdet
-            const statusDoctosccDet = await postDoctosccDet({ ...formValues, resGetDoctoscc, resGetBancos,statusDoctoscc });
+            const statusDoctosccDet = await postDoctosccDet({
+              ...formValues,
+              resGetDoctoscc,
+              resGetBancos,
+              statusDoctoscc,
+            });
             //post ingresoComprobante
-            const statusIngresoComprobante = await postingresoComprobante({statusDoctoscc });
+            const statusIngresoComprobante = await postingresoComprobante({
+              statusDoctoscc,
+            });
             //post ingreso
-            const statusIngresoRegistro = await postIngreso({ ...formValues, resGetDoctoscc, resGetBancos,statusIngresoComprobante,statusTransbancaria, folioIncrementadoIngreso });
+            const statusIngresoRegistro = await postIngreso({
+              ...formValues,
+              resGetDoctoscc,
+              resGetBancos,
+              statusIngresoComprobante,
+              statusTransbancaria,
+              folioIncrementadoIngreso,
+            });
             //put IngresoComprobante
-            const putIngComp = await putIngresoComprobante({ ...formValues, resGetDoctoscc, resGetBancos,statusDoctoscc, statusIngresoComprobante});
+            const putIngComp = await putIngresoComprobante({
+              ...formValues,
+              resGetDoctoscc,
+              resGetBancos,
+              statusDoctoscc,
+              statusIngresoComprobante,
+            });
             //post abono
-            const statusPostAbono = await  postAbono({...formValues,statusDoctoscc,statusIngresoRegistro,resGetDataClave});
+            const statusPostAbono = await postAbono({
+              ...formValues,
+              statusDoctoscc,
+              statusIngresoRegistro,
+              resGetDataClave,
+              cargosDeLasFacturas,
+            });
             //post Tarea
-            const statusPostTarea = await postTarea({...formValues,statusDoctoscc,statusIngresoComprobante});
+            const statusPostTarea = await postTarea({
+              ...formValues,
+              statusDoctoscc,
+              statusIngresoComprobante,
+              fechaDiaMasUno,
+            });
             setFormValues({
               clave: "",
               importe_pago: "",
               fecha: "",
               notas: "",
               FormaPago: "",
-              cuentaBeneficiara : "",
+              cuentaBeneficiara: "",
             });
             swal({
               title: "Registrado EXITOSAMENTE!!",
@@ -133,14 +189,45 @@ function FormularioPago() {
               icon: "success",
             });
           }
-         
         }
       } else {
-        swal({
-          title: "UPPS!!",
-          text: "Verifica el Importe!",
-          icon: "warning",
-        });
+        if (formValues.clave == "") {
+          swal({
+            title: "UPPS!!",
+            text: "Introduce una Clave!",
+            icon: "warning",
+          });
+        } else {
+          if (formValues.importe_pago == "") {
+            swal({
+              title: "UPPS!!",
+              text: "Introduce el importe!",
+              icon: "warning",
+            });
+          } else {
+            if (formValues.importe_pago <= 0) {
+              swal({
+                title: "UPPS!!",
+                text: "El Importe no puede ser menor a 0!",
+                icon: "warning",
+              });
+            } else {
+              if (Saldo == 0) {
+                swal({
+                  title: "UPPS!!",
+                  text: "Esta factura ya esta pagada!",
+                  icon: "warning",
+                });
+              } else {
+                swal({
+                  title: "UPPS!!",
+                  text: "Verifica el Importe!",
+                  icon: "warning",
+                });
+              }
+            }
+          }
+        }
       }
     } catch (e) {
       swal({
@@ -171,7 +258,7 @@ function FormularioPago() {
           fecha: "",
           notas: "",
           FormaPago: "",
-          cuentaBeneficiara : "",
+          cuentaBeneficiara: "",
         });
       }
     });
@@ -184,13 +271,10 @@ function FormularioPago() {
 
   const handleClickActivar = () => {
     const SelectFormaPago = formValues.FormaPago;
-    if (SelectFormaPago == "1" || SelectFormaPago == "3"  ) {
+    if (SelectFormaPago == "1" || SelectFormaPago == "3") {
       SetBtnActivo(false);
     } else {
-      if (
-        SelectFormaPago == "2" ||
-        SelectFormaPago == "4"
-      ) {
+      if (SelectFormaPago == "2" || SelectFormaPago == "4") {
         SetBtnActivo(true);
       }
     }
@@ -198,7 +282,9 @@ function FormularioPago() {
 
   return (
     <Fragment>
-      <h1 className="fw-bold mt-3 py-4 text-center text-primary">REGISTRO DE PAGO</h1>
+      <h1 className="fw-bold mt-3 py-4 text-center text-primary">
+        REGISTRO DE PAGO
+      </h1>
       <form
         id="formIngresoPago"
         className="form-floating row g-3 needs-validation"
@@ -209,7 +295,7 @@ function FormularioPago() {
           <div className="form-floating  col-sm-12 col-md-6 col-lg-6 col-xl-6 ">
             <input
               id="floatingInputValue"
-              className="form-control "
+              className="form-control"
               type="text"
               name="clave"
               value={formValues.clave}
@@ -261,20 +347,6 @@ function FormularioPago() {
           <br></br>
           <br></br>
           <br></br>
-          {/* <div className="form-floating col-sm-12 col-md-6 col-lg-6 col-xl-6 pt-1">
-            <select
-              onChange={handleChange}
-              name="cuentaBeneficiara "
-              className="form-select"
-              disabled={!btnActivo}
-            >
-              <option defaultValue>Seleccionar cuenta</option>
-              <option value={1}>1111</option>
-              <option value={2}>2222</option>
-            
-            </select>
-            <label className=" text-dark p-3 ">Cuenta Beneficiaria*</label>
-          </div> */}
           <div className="form-floating col-sm-12 col-md-6 col-lg-6 col-xl-6 pt-1">
             <select
               onChange={handleChange}
@@ -288,7 +360,6 @@ function FormularioPago() {
                   {elemento.cuenta}
                 </option>
               ))}
-            
             </select>
             <label className=" text-dark p-3 ">Cuenta Beneficiaria*</label>
           </div>
@@ -356,3 +427,6 @@ function FormularioPago() {
 }
 
 export default FormularioPago;
+
+//required con js
+//hacer mas pequeños los iimputs
