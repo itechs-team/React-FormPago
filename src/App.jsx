@@ -1,5 +1,5 @@
 import FormularioPago from "./componentes/FormularioPago";
-import { getClave, postIngreso } from "./services/index";
+// import { getClave, postIngreso } from "./services/index";
 
 function App() {
  

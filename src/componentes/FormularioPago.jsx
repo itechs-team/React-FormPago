@@ -1,35 +1,24 @@
 import React, { Fragment, useState, useEffect, useRef } from "react";
-import {getBanco,getBancoSinID,getClave,
-  getDoctoscc,getFolioDoctoscc,getFolioIngreso,
-  getFormaPagoList,
-  postAbono,
-  postDoctoscc,
-  postDoctosccDet,
-  postIngreso,
-  postingresoComprobante,
-  postTarea,
-  postTransbancaria,
-  putIngresoComprobante,
-} from "../services/index";
+import { SaldaAbonoWeb } from "../services/index";
+import { getBancoSinID, getFormaPagoList } from "../services/Banco";
 import swal from "sweetalert";
 
 function FormularioPago() {
   const [btnActivo, SetBtnActivo] = useState(false);
   const [formaPago, setFormaPago] = useState([]);
-  const [banco, setBanco] = useState([]); //puede o no puede ir
+  const [banco, setBanco] = useState([]);
   const [formValues, setFormValues] = useState({
     clave: "",
     importe_pago: "",
     fecha: "",
-    notas: "",
+    notas: "comentarios",
     FormaPago: "",
-    cuentaBeneficiara: "",
+    cuentaBeneficiaria: "",
   });
 
   useEffect(() => {
     async function VerFormaPago() {
       const response = await getFormaPagoList();
-      // console.log(response);
       if (response.status === 200) {
         setFormaPago(response.data);
       }
@@ -40,7 +29,6 @@ function FormularioPago() {
   useEffect(() => {
     async function VerBancos() {
       const response = await getBancoSinID();
-      // console.log(response);
       if (response.status === 200) {
         setBanco(response.data);
       }
@@ -52,188 +40,60 @@ function FormularioPago() {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    // console.log(name, value);
     setFormValues({ ...formValues, [name]: value });
   };
 
-  const _handleSubmit = async (e) => {
+  // const _handleSubmit = async (e) => {
+    const _handleSubmit = async function (e) {
     e.preventDefault();
-
-    const resGetDataClave = await getClave({ ...formValues });
-    if (resGetDataClave == null) {
-      swal({
-        title: "UPPS!!",
-        text: "La Clave no existe!",
-        icon: "warning",
-      });
-    }
-    const resGetOnlyClave = resGetDataClave.data.clave;
-    // const resGetOnlyImporte = resGetDataClave.data.importePago;
     try {
-      //Validamos la calve y el importe
-      const Saldo = resGetDataClave.data.saldo;
-      const resGetOnlyImporte = formValues.importe_pago;
-      if (
-        resGetOnlyClave == formValues.clave &&
-        Saldo != 0 &&
-        resGetOnlyImporte == Saldo
-      ) {
-        const resGetIdFactura = resGetDataClave.data.idFactura;
-        const resGetDoctoscc = await getDoctoscc(resGetIdFactura);
-        const resGetIdCliente = resGetDoctoscc.data.cliente;
-        const resGetBancos = await getBanco(resGetIdCliente);
-        // console.log(resGetDoctoscc);
-        const fechaForm = formValues.fecha;
-        const importeForm = formValues.importe_pago;
-        const formapagoForm = formValues.FormaPago;
-        //valdiamos campos vacios
-
-        if (fechaForm == "" || importeForm == "" || formapagoForm == "") {
-          swal({
-            title: "",
-            text: "Los campos con * son requeridos",
-            icon: "warning",
-          });
-        } else {
-          const statusTransbancaria = await postTransbancaria({
-            ...formValues,
-            resGetDoctoscc,
-            resGetBancos,
-          });
-          if (
-            statusTransbancaria.status >= 200 &&
-            statusTransbancaria.status <= 250
-          ) {
-            //ver folio y autoincrementarlo en 1 -DOCTOSCC
-            const folioDoctoscc = await getFolioDoctoscc({ resGetDoctoscc });
-            const resultFolioDoc = folioDoctoscc.data.folio;
-            const folioIncrementado = resultFolioDoc + 1;
-            //post doctoscc
-            const statusDoctoscc = await postDoctoscc({
-              ...formValues,
-              resGetDoctoscc,
-              resGetBancos,
-              folioIncrementado,
-            });
-            //incrementar en un dia la fecha
-            const fechaData = formValues.fecha;
-            const fechaDiaMasUno = fechaData + 1;
-            //ver folio y autoincrementarlo en 1 Ingreso
-            const folioIngreso = await getFolioIngreso({
-              resGetDataClave,
-              statusDoctoscc,
-            });
-            const resultFolioIngreso = folioIngreso.data.folio;
-            const folioIncrementadoIngreso = resultFolioIngreso + 1;
-            // //ver deatalles de las facturas
-            // const DetallesFacturas = await getDoctosccDetFacturas({resGetDoctoscc});
-            // console.log(DetallesFacturas);
-            // //ver los cargos de los detalles de las facturas
-            // const cargosDeLasFacturas = await getCargos({DetallesFacturas})
-            // console.log(cargosDeLasFacturas);
-
-            //post doctosccdet
-            const statusDoctosccDet = await postDoctosccDet({
-              ...formValues,
-              resGetDoctoscc,
-              resGetBancos,
-              statusDoctoscc,
-            });
-            //post ingresoComprobante
-            const statusIngresoComprobante = await postingresoComprobante({
-              statusDoctoscc,
-            });
-            //post ingreso
-            const statusIngresoRegistro = await postIngreso({
-              ...formValues,
-              resGetDoctoscc,
-              resGetBancos,
-              statusIngresoComprobante,
-              statusTransbancaria,
-              folioIncrementadoIngreso,
-            });
-            //put IngresoComprobante
-            const putIngComp = await putIngresoComprobante({
-              ...formValues,
-              resGetDoctoscc,
-              resGetBancos,
-              statusDoctoscc,
-              statusIngresoComprobante,
-            });
-            //post abono
-            const statusPostAbono = await postAbono({
-              ...formValues,
-              statusDoctoscc,
-              statusIngresoRegistro,
-              resGetDataClave,
-              cargosDeLasFacturas,
-            });
-            //post Tarea
-            const statusPostTarea = await postTarea({
-              ...formValues,
-              statusDoctoscc,
-              statusIngresoComprobante,
-              fechaDiaMasUno,
-            });
-            setFormValues({
-              clave: "",
-              importe_pago: "",
-              fecha: "",
-              notas: "",
-              FormaPago: "",
-              cuentaBeneficiara: "",
-            });
-            swal({
-              title: "Registrado EXITOSAMENTE!!",
-              text: "",
-              icon: "success",
-            });
-          }
-        }
-      } else {
-        if (formValues.clave == "") {
-          swal({
-            title: "UPPS!!",
-            text: "Introduce una Clave!",
-            icon: "warning",
-          });
-        } else {
-          if (formValues.importe_pago == "") {
-            swal({
-              title: "UPPS!!",
-              text: "Introduce el importe!",
-              icon: "warning",
-            });
-          } else {
-            if (formValues.importe_pago <= 0) {
-              swal({
-                title: "UPPS!!",
-                text: "El Importe no puede ser menor a 0!",
-                icon: "warning",
-              });
-            } else {
-              if (Saldo == 0) {
-                swal({
-                  title: "UPPS!!",
-                  text: "Esta factura ya esta pagada!",
-                  icon: "warning",
-                });
-              } else {
-                swal({
-                  title: "UPPS!!",
-                  text: "Verifica el Importe!",
-                  icon: "warning",
-                });
-              }
-            }
-          }
-        }
+      const PagoEfectivo = 1;
+      if (formValues.importe_pago == "") {
+        throw new SyntaxError("No ha ingresado un 'Importe'");
       }
+
+      if (
+        formValues.FormaPago == "" ||
+        formValues.FormaPago == "Seleccionar forma de pago"
+      ) {
+        throw new SyntaxError("No ha seleccionado una 'Forma de pago'.");
+      }
+
+      if (
+        formValues.cuentaBeneficiaria == "" &&
+        formValues.FormaPago != PagoEfectivo
+      ) {
+        throw new SyntaxError("No ha seleccionado una 'Cuenta beneficiaria'");
+      }
+
+      if (formValues.fecha == "") {
+        throw new SyntaxError("No ha seleccionado una 'Fecha'");
+      }
+
+      if (formValues.clave == "") {
+        throw new SyntaxError("No ha colocado una 'Clave'");
+      }
+
+      await SaldaAbonoWeb({ ...formValues });
+
+      setFormValues({
+        clave: "",
+        importe_pago: "",
+        fecha: "",
+        notas: "comentarios",
+        FormaPago: "Seleccionar forma de pago",
+        cuentaBeneficiaria: "Seleccionar cuenta",
+      });
+      swal({
+        title: "!Registrado EXITOSAMENTE!!",
+        text: "",
+        icon: "success",
+      });
     } catch (e) {
       swal({
-        title: "UPPS!!",
-        text: "Hubo un erro al registrar, intenta más tarde",
-        icon: "warning",
+        title: "Error",
+        text: e.message,
+        icon: "error",
       });
       console.log(e);
     }
@@ -241,7 +101,7 @@ function FormularioPago() {
 
   const handleClick = () => {
     swal({
-      title: "CANCELAR",
+      title: "Cancelar",
       text: "¿Esta seguro que desea cancelar la operación?",
       icon: "warning",
       buttons: ["No", "Si"],
@@ -250,15 +110,15 @@ function FormularioPago() {
         swal({
           text: "Cancelado correctamente",
           icon: "success",
-          timer: "2000",
+          timer: "3000",
         });
         setFormValues({
           clave: "",
           importe_pago: "",
           fecha: "",
-          notas: "",
+          notas: "comentarios",
           FormaPago: "",
-          cuentaBeneficiara: "",
+          cuentaBeneficiaria: "",
         });
       }
     });
@@ -273,6 +133,7 @@ function FormularioPago() {
     const SelectFormaPago = formValues.FormaPago;
     if (SelectFormaPago == "1" || SelectFormaPago == "3") {
       SetBtnActivo(false);
+      formValues.cuentaBeneficiaria=2088;
     } else {
       if (SelectFormaPago == "2" || SelectFormaPago == "4") {
         SetBtnActivo(true);
@@ -294,24 +155,6 @@ function FormularioPago() {
         <div className="row p-2 m-2">
           <div className="form-floating  col-sm-12 col-md-6 col-lg-6 col-xl-6 ">
             <input
-              id="floatingInputValue"
-              className="form-control"
-              type="text"
-              name="clave"
-              value={formValues.clave}
-              onChange={handleChange}
-              autoFocus
-              required
-            />
-            <label htmlFor="floatingInputValue" className="text-dark  p-3 ">
-              Clave*
-            </label>
-          </div>
-          <br></br>
-          <br></br>
-          <br></br>
-          <div className="form-floating  col-sm-12 col-md-6 col-lg-6 col-xl-6 ">
-            <input
               className="form-control"
               type="number"
               pattern="[0-9]+"
@@ -320,8 +163,9 @@ function FormularioPago() {
               value={formValues.importe_pago}
               onChange={handleChange}
               required
+              autoFocus
             />
-            <label className="text-dark p-3 ">Importe Pago*</label>
+            <label className="text-dark p-3 ">Importe pago*</label>
           </div>
           <br></br>
           <br></br>
@@ -333,7 +177,7 @@ function FormularioPago() {
               name="FormaPago"
               className="form-select"
             >
-              <option defaultValue>Seleccionar Forma de Pago</option>
+              <option defaultValue>Seleccionar forma de pago</option>
               <option value={1}>Pago en OXXO</option>
               <option value={1}>Depósito efectivo en banco</option>
               {formaPago.map((elemento) => (
@@ -350,7 +194,7 @@ function FormularioPago() {
           <div className="form-floating col-sm-12 col-md-6 col-lg-6 col-xl-6 pt-1">
             <select
               onChange={handleChange}
-              name="cuentaBeneficiara "
+              name="cuentaBeneficiaria"
               className="form-select"
               disabled={!btnActivo}
             >
@@ -361,7 +205,7 @@ function FormularioPago() {
                 </option>
               ))}
             </select>
-            <label className=" text-dark p-3 ">Cuenta Beneficiaria*</label>
+            <label className=" text-dark p-3 ">Cuenta beneficiaria*</label>
           </div>
           <br></br>
           <br></br>
@@ -373,7 +217,7 @@ function FormularioPago() {
               ref={inputFileRef}
               id="formFile"
             />
-            <label className="text-dark pt-2 pl-3">Subir Ticket de Pago*</label>
+            <label className="text-dark pt-2 pl-3">Subir ticket de pago*</label>
           </div>
           <br></br>
           <br></br>
@@ -387,9 +231,25 @@ function FormularioPago() {
               onChange={handleChange}
               required
             />
-            <label className="text-dark p-3">Fecha y Hora actual* </label>
+            <label className="text-dark p-3">Fecha y hora actual* </label>
           </div>
-
+          <br></br>
+          <br></br>
+          <br></br>
+          <div className="form-floating  col-sm-12 col-md-6 col-lg-6 col-xl-6 ">
+            <input
+              id="floatingInputValue"
+              className="form-control"
+              type="text"
+              name="clave"
+              value={formValues.clave}
+              onChange={handleChange}
+              required
+            />
+            <label htmlFor="floatingInputValue" className="text-dark  p-3 ">
+              Clave*
+            </label>
+          </div>
           <br></br>
           <br></br>
           <br></br>
@@ -399,6 +259,7 @@ function FormularioPago() {
               name="notas"
               value={formValues.notas}
               onChange={handleChange}
+              // placeholder="comentario"
             ></textarea>
             <label className="text-dark p-3 pb-4">Comentarios</label>
           </div>
@@ -427,6 +288,3 @@ function FormularioPago() {
 }
 
 export default FormularioPago;
-
-//required con js
-//hacer mas pequeños los iimputs
