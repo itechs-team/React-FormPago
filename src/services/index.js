@@ -8,14 +8,14 @@ const BaseUrl = "http://localhost:5124/";
 export async function SaldaAbonoWeb(dataClave) {
   try {
         const importePago = dataClave.importe_pago;
-        const formaPago = dataClave.FormaPago;
+        const metodoPago = dataClave.MetodoPago;
         const fecha = dataClave.fecha;
         const Clave = dataClave.clave;
         const cuentaBeneficiaria=dataClave.cuentaBeneficiaria;
         const notas = dataClave.notas;
 
         const response = await axios({
-          url: `${BaseUrl}api/PagoEnLinea/SaldaAbonoWeb/${importePago}/${formaPago}/${fecha}/${Clave}/${cuentaBeneficiaria}/${notas}`,
+          url: `${BaseUrl}api/PagoEnLinea/SaldaAbonoWeb/${importePago}/${metodoPago}/${fecha}/${Clave}/${cuentaBeneficiaria}/${notas}`,
           method: "GET",
         });
         return response;

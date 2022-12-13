@@ -50,22 +50,22 @@ function FormularioPago() {
 
       const PagoEfectivo = 1;
 
-      if (formValues.importe_pago == "") {
+      if (formValues.importe_pago == "" ) {
         throw new SyntaxError("No ha ingresado un 'Importe'");
       }
 
       if (
         formValues.MetodoPago == "" ||
-        formValues.MetodoPago == "Seleccionar forma de pago"
+        formValues.MetodoPago == "Seleccionar Método de pago"
       ) {
-        throw new SyntaxError("No ha seleccionado una 'Forma de pago'.");
+        throw new SyntaxError("No ha seleccionado una 'Método de pago'.");
       }
 
       if (
-        formValues.cuentaBeneficiaria == "" &&
-        formValues.MetodoPago != PagoEfectivo
+        formValues.cuentaBeneficiaria == "" ||
+        formValues.MetodoPago =="Seleccionar cuenta"
       ) {
-        throw new SyntaxError("No ha seleccionado una 'Cuenta beneficiaria'");
+        throw new SyntaxError("No ha seleccionado una 'Cuenta de banco'");
       }
       if (formValues.fecha == "") {
         throw new SyntaxError("No ha seleccionado una 'Fecha'");
@@ -76,6 +76,7 @@ function FormularioPago() {
       }
 
       await SaldaAbonoWeb({ ...formValues });
+
       document.getElementById('formIngresoPago').reset();
       setFormValues({
         clave: "",
@@ -130,11 +131,11 @@ function FormularioPago() {
 
   const handleClickActivar = () => {
     const SelectMetodoPago = formValues.MetodoPago;
-    if (SelectMetodoPago == "1" || SelectMetodoPago == "3") {
+    if (SelectMetodoPago < 1 || SelectMetodoPago > 5 || SelectMetodoPago=="Seleccionar Método de pago") {
       SetBtnActivo(false);
-      formValues.cuentaBeneficiaria=2088;
+      //document.getElementById('cuentaBancaria').reset();
     } else {
-      if (SelectMetodoPago == "2" || SelectMetodoPago == "4") {
+      if (SelectMetodoPago >= 1 && SelectMetodoPago <= 5 ) {
         SetBtnActivo(true);
       }
     }
@@ -190,6 +191,7 @@ function FormularioPago() {
           <br></br>
           <div className="form-floating col-sm-12 col-md-6 col-lg-6 col-xl-6 pt-1">
             <select
+            id="cuentaBancaria"
               onChange={handleChange}
               name="cuentaBeneficiaria"
               className="form-select"
