@@ -29,10 +29,10 @@ export async function getBancoSinID() {
     }
   }
   //ver formaPago
-  export async function getFormaPagoList() {
+  export async function getMetodopagoList() {
     try {
       const response = await axios({
-        url: `${BaseUrl}api/FormaPago/Ver`,
+        url: `${BaseUrl}api/MetodoPago/VerMetodoPago`,
         method: "GET",
       });
       return response;

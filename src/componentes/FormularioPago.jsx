@@ -1,29 +1,29 @@
 import React, { Fragment, useState, useEffect, useRef } from "react";
 import { SaldaAbonoWeb } from "../services/index";
-import { getBancoSinID, getFormaPagoList } from "../services/Banco";
+import { getBancoSinID, getMetodopagoList } from "../services/Banco";
 import swal from "sweetalert";
 
 function FormularioPago() {
   const [btnActivo, SetBtnActivo] = useState(false);
-  const [formaPago, setFormaPago] = useState([]);
+  const [metodoPago, setMetodoPago] = useState([]);
   const [banco, setBanco] = useState([]);
   const [formValues, setFormValues] = useState({
     clave: "",
     importe_pago: "",
     fecha: "",
-    notas: "comentarios",
-    FormaPago: "",
+    notas: "Nota",
+    MetodoPago: "",
     cuentaBeneficiaria: "",
   });
 
   useEffect(() => {
-    async function VerFormaPago() {
-      const response = await getFormaPagoList();
+    async function VerMetodoPago() {
+      const response = await getMetodopagoList();
       if (response.status === 200) {
-        setFormaPago(response.data);
+        setMetodoPago(response.data);
       }
     }
-    VerFormaPago();
+    VerMetodoPago();
   }, []);
 
   useEffect(() => {
@@ -47,25 +47,26 @@ function FormularioPago() {
     const _handleSubmit = async function (e) {
     e.preventDefault();
     try {
+
       const PagoEfectivo = 1;
+
       if (formValues.importe_pago == "") {
         throw new SyntaxError("No ha ingresado un 'Importe'");
       }
 
       if (
-        formValues.FormaPago == "" ||
-        formValues.FormaPago == "Seleccionar forma de pago"
+        formValues.MetodoPago == "" ||
+        formValues.MetodoPago == "Seleccionar forma de pago"
       ) {
         throw new SyntaxError("No ha seleccionado una 'Forma de pago'.");
       }
 
       if (
         formValues.cuentaBeneficiaria == "" &&
-        formValues.FormaPago != PagoEfectivo
+        formValues.MetodoPago != PagoEfectivo
       ) {
         throw new SyntaxError("No ha seleccionado una 'Cuenta beneficiaria'");
       }
-
       if (formValues.fecha == "") {
         throw new SyntaxError("No ha seleccionado una 'Fecha'");
       }
@@ -75,20 +76,19 @@ function FormularioPago() {
       }
 
       await SaldaAbonoWeb({ ...formValues });
-
+      document.getElementById('formIngresoPago').reset();
       setFormValues({
         clave: "",
         importe_pago: "",
         fecha: "",
-        notas: "comentarios",
-        FormaPago: "Seleccionar forma de pago",
-        cuentaBeneficiaria: "Seleccionar cuenta",
+        notas: "Nota",
       });
       swal({
-        title: "!Registrado EXITOSAMENTE!!",
+        title: "!REGISTRADO EXITOSAMENTE!!",
         text: "",
         icon: "success",
       });
+
     } catch (e) {
       swal({
         title: "Error",
@@ -112,13 +112,12 @@ function FormularioPago() {
           icon: "success",
           timer: "3000",
         });
+        document.getElementById('formIngresoPago').reset();
         setFormValues({
           clave: "",
           importe_pago: "",
           fecha: "",
-          notas: "comentarios",
-          FormaPago: "",
-          cuentaBeneficiaria: "",
+          notas: "Nota",
         });
       }
     });
@@ -130,12 +129,12 @@ function FormularioPago() {
   // };
 
   const handleClickActivar = () => {
-    const SelectFormaPago = formValues.FormaPago;
-    if (SelectFormaPago == "1" || SelectFormaPago == "3") {
+    const SelectMetodoPago = formValues.MetodoPago;
+    if (SelectMetodoPago == "1" || SelectMetodoPago == "3") {
       SetBtnActivo(false);
       formValues.cuentaBeneficiaria=2088;
     } else {
-      if (SelectFormaPago == "2" || SelectFormaPago == "4") {
+      if (SelectMetodoPago == "2" || SelectMetodoPago == "4") {
         SetBtnActivo(true);
       }
     }
@@ -153,7 +152,7 @@ function FormularioPago() {
         onSubmit={_handleSubmit}
       >
         <div className="row p-2 m-2">
-          <div className="form-floating  col-sm-12 col-md-6 col-lg-6 col-xl-6 ">
+          <div className="form-floating col-sm-12 col-md-6 col-lg-6 col-xl-6 ">
             <input
               className="form-control"
               type="number"
@@ -174,19 +173,17 @@ function FormularioPago() {
             <select
               onChange={handleChange}
               onClick={() => handleClickActivar()}
-              name="FormaPago"
+              name="MetodoPago"
               className="form-select"
             >
-              <option defaultValue>Seleccionar forma de pago</option>
-              <option value={1}>Pago en OXXO</option>
-              <option value={1}>Depósito efectivo en banco</option>
-              {formaPago.map((elemento) => (
-                <option key={elemento.idFormapago} value={elemento.idFormapago}>
-                  {elemento.formapago1}
+              <option defaultValue>Seleccionar Método de pago</option>
+              {metodoPago.map((elemento) => (
+                <option key={elemento.idMetodopago} value={elemento.idMetodopago}>
+                  {elemento.metodopago1}
                 </option>
               ))}
             </select>
-            <label className=" text-dark p-3 ">Forma de pago*</label>
+            <label className=" text-dark p-3 ">Método de pago*</label>
           </div>
           <br></br>
           <br></br>
@@ -205,7 +202,7 @@ function FormularioPago() {
                 </option>
               ))}
             </select>
-            <label className=" text-dark p-3 ">Cuenta beneficiaria*</label>
+            <label className=" text-dark p-3 ">Cuenta bancaria*</label>
           </div>
           <br></br>
           <br></br>
@@ -263,6 +260,7 @@ function FormularioPago() {
             ></textarea>
             <label className="text-dark p-3 pb-4">Comentarios</label>
           </div>
+         
           <br></br>
           <br></br>
           <br></br>
