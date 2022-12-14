@@ -1,9 +1,10 @@
 import React, { Fragment, useState, useEffect, useRef } from "react";
-import { SaldaAbonoWeb } from "../services/index";
+import { SaldaAbonoWeb,ImagenUpload } from "../services/index";
 import { getBancoSinID, getMetodopagoList } from "../services/Banco";
 import swal from "sweetalert";
 
 function FormularioPago() {
+  const [image, setImage] = useState(null);
   const [btnActivo, SetBtnActivo] = useState(false);
   const [metodoPago, setMetodoPago] = useState([]);
   const [banco, setBanco] = useState([]);
@@ -36,11 +37,31 @@ function FormularioPago() {
     VerBancos();
   }, []);
 
-  const inputFileRef = useRef();
+  // const inputFileRef = useRef(); //otra forma de obtener la imagen
+
+
+  function handleImageChange(event) {
+   setImage(event.target.files[0]);
+    
+  }
+
+
+
+
+  // function handleImageChange(event) {
+  //   // setImage(event.target.files[0]);
+  //   const file= event.target.files[0];
+  //   const reader = new FileReader();
+
+  //       reader.onloadend=()=>{
+  //         setImage(reader.result.toString());
+  //       };
+  //       reader.readAsDataURL(file);
+  // }
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setFormValues({ ...formValues, [name]: value });
+    setFormValues({ ...formValues, [name]: value/*, image: inputFileRef.current.files*/ });
   };
 
   // const _handleSubmit = async (e) => {
@@ -75,7 +96,9 @@ function FormularioPago() {
         throw new SyntaxError("No ha colocado una 'Clave'");
       }
 
-      await SaldaAbonoWeb({ ...formValues });
+      await ImagenUpload({ image});
+      await SaldaAbonoWeb({ ...formValues});
+      
 
       document.getElementById('formIngresoPago').reset();
       setFormValues({
@@ -213,7 +236,9 @@ function FormularioPago() {
             <input
               className="form-control"
               type="file"
-              ref={inputFileRef}
+              accept="image/png, image/gif, image/jpeg"
+              onChange={handleImageChange}
+              // ref={inputFileRef}
               id="formFile"
             />
             <label className="text-dark pt-2 pl-3">Subir ticket de pago*</label>
@@ -258,7 +283,6 @@ function FormularioPago() {
               name="notas"
               value={formValues.notas}
               onChange={handleChange}
-              // placeholder="comentario"
             ></textarea>
             <label className="text-dark p-3 pb-4">Comentarios</label>
           </div>
