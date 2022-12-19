@@ -1,16 +1,22 @@
 import FormularioPago from "./componentes/FormularioPago";
-// import { getClave, postIngreso } from "./services/index";
+import ObtenerRutaFormulario  from "./services/ConexionBdPorEmpresa";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+
+import React from 'react'
 
 function App() {
- 
-  // const handleSubmit = (dataForm) => {
-  //   postIngreso(dataForm)
-  // };
   return (
     <main className="p-5">
       <div className="container  bg-white shadow  text-white rounded-3   ">
-        <FormularioPago />
-         {/* handleSubmit={handleSubmit} */}
+        <BrowserRouter>
+          <div>
+            <Routes>
+              <Route path="/_transportes" element={<FormularioPago />}  />
+              <Route path="/itechs" element={<FormularioPago />} />
+              <Route path="/_altamirano" element={<FormularioPago />} />
+            </Routes>
+          </div>
+        </BrowserRouter>
       </div>
     </main>
   );

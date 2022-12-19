@@ -1,7 +1,9 @@
 import React, { Fragment, useState, useEffect, useRef } from "react";
 import { SaldaAbonoWeb,ImagenUpload } from "../services/index";
 import { getBancoSinID, getMetodopagoList } from "../services/Banco";
+import ObtenerRutaFormulario,{getBdEmpresa}  from "../services/ConexionBdPorEmpresa";
 import swal from "sweetalert";
+//import { ObtenerRutaFormulario } from "../services/ConexionBdPorEmpresa";
 
 function FormularioPago() {
   const [image, setImage] = useState(null);
@@ -16,6 +18,18 @@ function FormularioPago() {
     MetodoPago: "",
     cuentaBeneficiaria: "",
   });
+
+  useEffect(() => {
+    async function verEmpresa(){
+      const ruta= await ObtenerRutaFormulario();
+      const bdConexion = getBdEmpresa(ruta);
+      if(bdConexion.status===200){
+        console.log(bdConexion);
+      }
+    }
+    verEmpresa()
+  }, [])
+  
 
   useEffect(() => {
     async function VerMetodoPago() {
@@ -44,31 +58,18 @@ function FormularioPago() {
    setImage(event.target.files[0]);
     
   }
-
-
-
-
-  // function handleImageChange(event) {
-  //   // setImage(event.target.files[0]);
-  //   const file= event.target.files[0];
-  //   const reader = new FileReader();
-
-  //       reader.onloadend=()=>{
-  //         setImage(reader.result.toString());
-  //       };
-  //       reader.readAsDataURL(file);
-  // }
-
+  
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setFormValues({ ...formValues, [name]: value/*, image: inputFileRef.current.files*/ });
+    setFormValues({ ...formValues, [name]: value });
   };
 
   // const _handleSubmit = async (e) => {
     const _handleSubmit = async function (e) {
     e.preventDefault();
     try {
-
+      //const pruebaURL = await ObtenerRutaFormulario();
+    
       const PagoEfectivo = 1;
 
       if (formValues.importe_pago == "" ) {
@@ -81,12 +82,14 @@ function FormularioPago() {
       ) {
         throw new SyntaxError("No ha seleccionado una 'Método de pago'.");
       }
-
       if (
         formValues.cuentaBeneficiaria == "" ||
         formValues.MetodoPago =="Seleccionar cuenta"
       ) {
         throw new SyntaxError("No ha seleccionado una 'Cuenta de banco'");
+      }
+      if(image==null){
+        throw new SyntaxError("No ha subido su 'Ticket de pago'");
       }
       if (formValues.fecha == "") {
         throw new SyntaxError("No ha seleccionado una 'Fecha'");
@@ -96,7 +99,7 @@ function FormularioPago() {
         throw new SyntaxError("No ha colocado una 'Clave'");
       }
 
-      await ImagenUpload({ image});
+      await ImagenUpload({ image, ...formValues});
       await SaldaAbonoWeb({ ...formValues});
       
 
