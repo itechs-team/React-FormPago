@@ -1,15 +1,19 @@
 import React, { Fragment, useState, useEffect, useRef } from "react";
-import { SaldaAbonoWeb,ImagenUpload } from "../services/index";
-import { getBancoSinID, getMetodopagoList } from "../services/Banco";
-import ObtenerRutaFormulario,{getBdEmpresa}  from "../services/ConexionBdPorEmpresa";
+import { SaldaAbonoWeb } from "../services/index";
+import { ImagenUpload } from "../services/UploadImagen";
+import { getMetodopagoList, ListaBancos } from "../services/Banco";
+import ObtenerRutaFormulario from "../services/ConexionBdPorEmpresa";
+import { UrlLogin } from "../services/Login";
 import swal from "sweetalert";
 //import { ObtenerRutaFormulario } from "../services/ConexionBdPorEmpresa";
 
 function FormularioPago() {
-  const [image, setImage] = useState(null);
-  const [btnActivo, SetBtnActivo] = useState(false);
+  const [login, setLogin] = useState("");
+  // const [rutaBD, setRutaBD] = useState("");
   const [metodoPago, setMetodoPago] = useState([]);
   const [banco, setBanco] = useState([]);
+  const [image, setImage] = useState(null);
+  const [btnActivo, SetBtnActivo] = useState(false);
   const [formValues, setFormValues] = useState({
     clave: "",
     importe_pago: "",
@@ -20,16 +24,27 @@ function FormularioPago() {
   });
 
   useEffect(() => {
-    async function verEmpresa(){
-      const ruta= await ObtenerRutaFormulario();
-      const bdConexion = getBdEmpresa(ruta);
-      if(bdConexion.status===200){
-        console.log(bdConexion);
+    async function loginForm() {
+      const rutaClave = ObtenerRutaFormulario();
+      const loginApi = await UrlLogin(rutaClave);
+      if (loginApi.status === 200) {
+        setLogin(loginApi.data.bd);
+        console.log(loginApi);
       }
     }
-    verEmpresa()
-  }, [])
-  
+    loginForm();
+  }, []);
+
+  // useEffect(() => {
+  //   function existeEmpresa() {
+  //     const ruta = ObtenerRutaFormulario();
+  //     const bdConexion = verificarClaveEmpresa(ruta);
+  //     if (bdConexion.status === 200) {
+  //       setRutaBD(bdConexion.data.bd);
+  //     }
+  //   }
+  //   existeEmpresa();
+  // }, []);
 
   useEffect(() => {
     async function VerMetodoPago() {
@@ -43,7 +58,7 @@ function FormularioPago() {
 
   useEffect(() => {
     async function VerBancos() {
-      const response = await getBancoSinID();
+      const response = await ListaBancos();
       if (response.status === 200) {
         setBanco(response.data);
       }
@@ -53,26 +68,24 @@ function FormularioPago() {
 
   // const inputFileRef = useRef(); //otra forma de obtener la imagen
 
-
   function handleImageChange(event) {
-   setImage(event.target.files[0]);
-    
+    setImage(event.target.files[0]);
   }
-  
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormValues({ ...formValues, [name]: value });
   };
 
   // const _handleSubmit = async (e) => {
-    const _handleSubmit = async function (e) {
+  const _handleSubmit = async function (e) {
     e.preventDefault();
     try {
       //const pruebaURL = await ObtenerRutaFormulario();
-    
+
       const PagoEfectivo = 1;
 
-      if (formValues.importe_pago == "" ) {
+      if (formValues.importe_pago == "") {
         throw new SyntaxError("No ha ingresado un 'Importe'");
       }
 
@@ -84,11 +97,11 @@ function FormularioPago() {
       }
       if (
         formValues.cuentaBeneficiaria == "" ||
-        formValues.MetodoPago =="Seleccionar cuenta"
+        formValues.MetodoPago == "Seleccionar cuenta"
       ) {
         throw new SyntaxError("No ha seleccionado una 'Cuenta de banco'");
       }
-      if(image==null){
+      if (image == null) {
         throw new SyntaxError("No ha subido su 'Ticket de pago'");
       }
       if (formValues.fecha == "") {
@@ -99,11 +112,10 @@ function FormularioPago() {
         throw new SyntaxError("No ha colocado una 'Clave'");
       }
 
-      await ImagenUpload({ image, ...formValues});
-      await SaldaAbonoWeb({ ...formValues});
-      
+      await ImagenUpload({ image, ...formValues });
+      await SaldaAbonoWeb({ ...formValues, rutaBD });
 
-      document.getElementById('formIngresoPago').reset();
+      document.getElementById("formIngresoPago").reset();
       setFormValues({
         clave: "",
         importe_pago: "",
@@ -115,7 +127,6 @@ function FormularioPago() {
         text: "",
         icon: "success",
       });
-
     } catch (e) {
       swal({
         title: "Error",
@@ -139,7 +150,7 @@ function FormularioPago() {
           icon: "success",
           timer: "3000",
         });
-        document.getElementById('formIngresoPago').reset();
+        document.getElementById("formIngresoPago").reset();
         setFormValues({
           clave: "",
           importe_pago: "",
@@ -157,11 +168,15 @@ function FormularioPago() {
 
   const handleClickActivar = () => {
     const SelectMetodoPago = formValues.MetodoPago;
-    if (SelectMetodoPago < 1 || SelectMetodoPago > 5 || SelectMetodoPago=="Seleccionar Método de pago") {
+    if (
+      SelectMetodoPago < 1 ||
+      SelectMetodoPago > 5 ||
+      SelectMetodoPago == "Seleccionar Método de pago"
+    ) {
       SetBtnActivo(false);
       //document.getElementById('cuentaBancaria').reset();
     } else {
-      if (SelectMetodoPago >= 1 && SelectMetodoPago <= 5 ) {
+      if (SelectMetodoPago >= 1 && SelectMetodoPago <= 5) {
         SetBtnActivo(true);
       }
     }
@@ -205,7 +220,10 @@ function FormularioPago() {
             >
               <option defaultValue>Seleccionar Método de pago</option>
               {metodoPago.map((elemento) => (
-                <option key={elemento.idMetodopago} value={elemento.idMetodopago}>
+                <option
+                  key={elemento.idMetodopago}
+                  value={elemento.idMetodopago}
+                >
                   {elemento.metodopago1}
                 </option>
               ))}
@@ -217,7 +235,7 @@ function FormularioPago() {
           <br></br>
           <div className="form-floating col-sm-12 col-md-6 col-lg-6 col-xl-6 pt-1">
             <select
-            id="cuentaBancaria"
+              id="cuentaBancaria"
               onChange={handleChange}
               name="cuentaBeneficiaria"
               className="form-select"
@@ -289,7 +307,7 @@ function FormularioPago() {
             ></textarea>
             <label className="text-dark p-3 pb-4">Comentarios</label>
           </div>
-         
+
           <br></br>
           <br></br>
           <br></br>

@@ -1,8 +1,8 @@
 import FormularioPago from "./componentes/FormularioPago";
-import ObtenerRutaFormulario  from "./services/ConexionBdPorEmpresa";
+import ObtenerRutaFormulario from "./services/ConexionBdPorEmpresa";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
-import React from 'react'
+import React from "react";
 
 function App() {
   return (
@@ -11,9 +11,10 @@ function App() {
         <BrowserRouter>
           <div>
             <Routes>
-              <Route path="/_transportes" element={<FormularioPago />}  />
+              <Route path="/_transportes" element={<FormularioPago />} />
               <Route path="/itechs" element={<FormularioPago />} />
-              <Route path="/_altamirano" element={<FormularioPago />} />
+              <Route path="/POTODEMO" element={<FormularioPago />} />
+              <Route path="/TRANSPORTESSADECV" element={<FormularioPago />} />
             </Routes>
           </div>
         </BrowserRouter>
