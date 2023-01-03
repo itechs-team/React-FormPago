@@ -25,11 +25,11 @@ function FormularioPago() {
 
   useEffect(() => {
     async function loginForm() {
-      const rutaClave = ObtenerRutaFormulario();
+      const rutaClave = await ObtenerRutaFormulario();
       const loginApi = await UrlLogin(rutaClave);
       if (loginApi.status === 200) {
-        setLogin(loginApi.data.bd);
-        console.log(loginApi);
+        setLogin(loginApi.data.data);
+        console.log(loginApi.data.data);
       }
     }
     loginForm();
@@ -48,7 +48,9 @@ function FormularioPago() {
 
   useEffect(() => {
     async function VerMetodoPago() {
-      const response = await getMetodopagoList();
+      // const token = await login;
+      const rutaClave = await ObtenerRutaFormulario();
+      const response = await getMetodopagoList(rutaClave);
       if (response.status === 200) {
         setMetodoPago(response.data);
       }

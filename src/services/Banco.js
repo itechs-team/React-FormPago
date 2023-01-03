@@ -4,9 +4,9 @@ import axios from "axios";
 const BaseUrl = "http://localhost:5124/";
 
 //ver todos los bancos
-export function ListaBancos() {
+export async function ListaBancos() {
   try {
-    const response = axios({
+    const response = await axios({
       url: `${BaseUrl}api/Banco/Ver`,
       method: "GET",
     });
@@ -22,6 +22,7 @@ export async function getBanco(DataBanco) {
     const response = await axios({
       url: `${BaseUrl}api/Banco/Ver/${idClienteUser}`,
       method: "GET",
+      // Authorization: `Bearer ${token}`,
     });
     return response;
   } catch (e) {
@@ -29,11 +30,14 @@ export async function getBanco(DataBanco) {
   }
 }
 //ver formaPago
-export async function getMetodopagoList() {
+export async function getMetodopagoList(rutaClave) {
   try {
+    const empresa = rutaClave;
+    // const token = data;
     const response = await axios({
-      url: `${BaseUrl}api/MetodoPago/VerMetodoPago`,
+      url: `${BaseUrl}api/MetodoPago/VerMetodoPago/${empresa}`,
       method: "GET",
+      // Authorization: `Bearer ${token}`,
     });
     return response;
   } catch (e) {

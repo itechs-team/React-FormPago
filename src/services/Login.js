@@ -1,5 +1,6 @@
 import axios from "axios";
 
+// const BaseUrl = "http://localhost:5124/";
 const BaseUrl = "http://localhost:5124/";
 
 export async function UrlLogin(ruta) {
