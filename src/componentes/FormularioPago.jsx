@@ -60,7 +60,8 @@ function FormularioPago() {
 
   useEffect(() => {
     async function VerBancos() {
-      const response = await ListaBancos();
+      const rutaClave = await ObtenerRutaFormulario();
+      const response = await ListaBancos(rutaClave);
       if (response.status === 200) {
         setBanco(response.data);
       }
@@ -70,8 +71,23 @@ function FormularioPago() {
 
   // const inputFileRef = useRef(); //otra forma de obtener la imagen
 
+  const fileInputRef = useRef(null);
+
   function handleImageChange(event) {
-    setImage(event.target.files[0]);
+    try {
+      if (event.target.files[0].size <= 1000000) {
+        setImage(event.target.files[0]);
+      } else {
+        fileInputRef.current.value = null;
+        swal({
+          title: "Error",
+          text: "La imagen debe pesar menos de 1 MB",
+          icon: "error",
+        });
+      }
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   const handleChange = (event) => {
@@ -114,8 +130,9 @@ function FormularioPago() {
         throw new SyntaxError("No ha colocado una 'Clave'");
       }
 
+      const rutaClave = await ObtenerRutaFormulario();
       await ImagenUpload({ image, ...formValues });
-      await SaldaAbonoWeb({ ...formValues, rutaBD });
+      await SaldaAbonoWeb({ ...formValues, rutaClave });
 
       document.getElementById("formIngresoPago").reset();
       setFormValues({
@@ -261,7 +278,7 @@ function FormularioPago() {
               type="file"
               accept="image/png, image/gif, image/jpeg"
               onChange={handleImageChange}
-              // ref={inputFileRef}
+              ref={fileInputRef}
               id="formFile"
             />
             <label className="text-dark pt-2 pl-3">Subir ticket de pago*</label>

@@ -14,10 +14,10 @@ export async function SaldaAbonoWeb(dataClave) {
     const cuentaBeneficiaria = dataClave.cuentaBeneficiaria;
     const notas = dataClave.notas;
 
-    // const bdEmpresa = dataClave.rutaBD;
+    const empresa = dataClave.rutaClave;
 
     const response = await axios({
-      url: `${BaseUrl}api/PagoEnLinea/SaldaAbonoWeb/${importePago}/${metodoPago}/${fecha}/${Clave}/${cuentaBeneficiaria}/${notas}`,
+      url: `${BaseUrl}api/PagoEnLinea/SaldaAbonoWeb/${importePago}/${metodoPago}/${fecha}/${Clave}/${cuentaBeneficiaria}/${notas}/${empresa}`,
       method: "GET",
     });
     return response;
