@@ -14,7 +14,7 @@ export async function SaldaAbonoWeb(dataClave) {
     const cuentaBeneficiaria = dataClave.cuentaBeneficiaria;
     const notas = dataClave.notas;
 
-    const empresa = dataClave.rutaClave;
+    const empresa = dataClave.ClaveEmpresa;
 
     const response = await axios({
       url: `${BaseUrl}api/PagoEnLinea/SaldaAbonoWeb/${importePago}/${metodoPago}/${fecha}/${Clave}/${cuentaBeneficiaria}/${notas}/${empresa}`,

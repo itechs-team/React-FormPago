@@ -7,17 +7,3 @@ function ObtenerRutaFormulario() {
   return borrarDiagonal;
 }
 export default ObtenerRutaFormulario;
-
-// export function verificarClaveEmpresa(ruta) {
-//   try {
-//     const newRuta = ruta;
-//     const response = axios({
-//       url: `${BaseUrl}api/EmpresasBdCfdi/ExisteEmpresa/${newRuta}`,
-//       method: "GET",
-//     });
-//     // return console.log(response);
-//     return response;
-//   } catch (e) {
-//     console.log(e);
-//   }
-// }

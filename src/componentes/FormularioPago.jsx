@@ -5,11 +5,9 @@ import { getMetodopagoList, ListaBancos } from "../services/Banco";
 import ObtenerRutaFormulario from "../services/ConexionBdPorEmpresa";
 import { UrlLogin } from "../services/Login";
 import swal from "sweetalert";
-//import { ObtenerRutaFormulario } from "../services/ConexionBdPorEmpresa";
 
 function FormularioPago() {
   const [login, setLogin] = useState("");
-  // const [rutaBD, setRutaBD] = useState("");
   const [metodoPago, setMetodoPago] = useState([]);
   const [banco, setBanco] = useState([]);
   const [image, setImage] = useState(null);
@@ -29,22 +27,11 @@ function FormularioPago() {
       const loginApi = await UrlLogin(rutaClave);
       if (loginApi.status === 200) {
         setLogin(loginApi.data.data);
-        console.log(loginApi.data.data);
+        // console.log(loginApi.data.data);
       }
     }
     loginForm();
   }, []);
-
-  // useEffect(() => {
-  //   function existeEmpresa() {
-  //     const ruta = ObtenerRutaFormulario();
-  //     const bdConexion = verificarClaveEmpresa(ruta);
-  //     if (bdConexion.status === 200) {
-  //       setRutaBD(bdConexion.data.bd);
-  //     }
-  //   }
-  //   existeEmpresa();
-  // }, []);
 
   useEffect(() => {
     async function VerMetodoPago() {
@@ -69,8 +56,6 @@ function FormularioPago() {
     VerBancos();
   }, []);
 
-  // const inputFileRef = useRef(); //otra forma de obtener la imagen
-
   const fileInputRef = useRef(null);
 
   function handleImageChange(event) {
@@ -82,7 +67,7 @@ function FormularioPago() {
         swal({
           title: "Error",
           text: "La imagen debe pesar menos de 1 MB",
-          icon: "error",
+          icon: "warning",
         });
       }
     } catch (e) {
@@ -99,9 +84,8 @@ function FormularioPago() {
   const _handleSubmit = async function (e) {
     e.preventDefault();
     try {
-      //const pruebaURL = await ObtenerRutaFormulario();
-
       const PagoEfectivo = 1;
+      const ClaveEmpresa = await ObtenerRutaFormulario();
 
       if (formValues.importe_pago == "") {
         throw new SyntaxError("No ha ingresado un 'Importe'");
@@ -130,9 +114,8 @@ function FormularioPago() {
         throw new SyntaxError("No ha colocado una 'Clave'");
       }
 
-      const rutaClave = await ObtenerRutaFormulario();
+      await SaldaAbonoWeb({ ...formValues, ClaveEmpresa });
       await ImagenUpload({ image, ...formValues });
-      await SaldaAbonoWeb({ ...formValues, rutaClave });
 
       document.getElementById("formIngresoPago").reset();
       setFormValues({
@@ -179,11 +162,6 @@ function FormularioPago() {
       }
     });
   };
-  // const _handleSubmit = (e) => {
-  //   e.preventDefault()
-  //     handleSubmit({ ...formValues /*, image: inputFileRef.current.files*/ });
-  //   }
-  // };
 
   const handleClickActivar = () => {
     const SelectMetodoPago = formValues.MetodoPago;
@@ -193,7 +171,6 @@ function FormularioPago() {
       SelectMetodoPago == "Seleccionar Método de pago"
     ) {
       SetBtnActivo(false);
-      //document.getElementById('cuentaBancaria').reset();
     } else {
       if (SelectMetodoPago >= 1 && SelectMetodoPago <= 5) {
         SetBtnActivo(true);
