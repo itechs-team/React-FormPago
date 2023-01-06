@@ -1,6 +1,6 @@
 import FormularioPago from "./componentes/FormularioPago";
 import ObtenerRutaFormulario from "./services/ConexionBdPorEmpresa";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, HashRouter, Route, Routes } from "react-router-dom";
 
 import React from "react";
 
@@ -8,9 +8,11 @@ function App() {
   return (
     <main className="p-5">
       <div className="container  bg-white shadow  text-white rounded-3   ">
-        <BrowserRouter>
+        <HashRouter>
+          {/* {<FormularioPago />} */}
           <div>
             <Routes>
+              <Route path="/prueba" element={<FormularioPago />}></Route>
               <Route path="/CCU951214BQ5" element={<FormularioPago />} />
               <Route path="/armhe" element={<FormularioPago />} />
               <Route path="/POTODEMO" element={<FormularioPago />} /> //hay 3
@@ -35,7 +37,7 @@ function App() {
               <Route path="/VAEJ890318DK8" element={<FormularioPago />} />
             </Routes>
           </div>
-        </BrowserRouter>
+        </HashRouter>
       </div>
     </main>
   );
