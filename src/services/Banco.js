@@ -1,7 +1,12 @@
 import React from "react";
 import axios from "axios";
+//server
 
-const BaseUrl = "http://localhost:5124/";
+//server gratuito
+const BaseUrl = "http://apiadapli.itechs.mx/";
+
+//ruta api local
+//const BaseUrl = "http://localhost:5124/";
 
 //ver todos los bancos
 export async function ListaBancos(rutaClave) {

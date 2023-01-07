@@ -125,7 +125,7 @@ function FormularioPago() {
         notas: "Nota",
       });
       swal({
-        title: "!REGISTRADO EXITOSAMENTE!!",
+        title: "¡REGISTRADO EXITOSAMENTE!!",
         text: "",
         icon: "success",
       });

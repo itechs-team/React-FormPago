@@ -1,6 +1,12 @@
 import axios, { AxiosError } from "axios";
 
-const BaseUrl = "http://localhost:5124/";
+//server
+
+//server gratuito
+const BaseUrl = "http://apiadapli.itechs.mx/";
+
+//ruta api local
+//const BaseUrl = "http://localhost:5124/";
 
 export async function ImagenUpload(dataImage) {
   try {

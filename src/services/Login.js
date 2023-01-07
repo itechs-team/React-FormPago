@@ -1,6 +1,11 @@
 import axios from "axios";
+//server
 
-const BaseUrl = "http://localhost:5124/";
+//server gratuito
+const BaseUrl = "http://apiadapli.itechs.mx/";
+
+//ruta api local
+//const BaseUrl = "http://localhost:5124/";
 
 export async function UrlLogin(ruta) {
   try {

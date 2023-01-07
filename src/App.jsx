@@ -9,12 +9,11 @@ function App() {
     <main className="p-5">
       <div className="container  bg-white shadow  text-white rounded-3   ">
         <HashRouter>
-          {/* {<FormularioPago />} */}
           <div>
             <Routes>
-              <Route path="/prueba" element={<FormularioPago />}></Route>
               <Route path="/CCU951214BQ5" element={<FormularioPago />} />
-              <Route path="/armhe" element={<FormularioPago />} />
+              <Route path="/armhe" element={<FormularioPago />} /> //tiene dos
+              claves diferetnes
               <Route path="/POTODEMO" element={<FormularioPago />} /> //hay 3
               claves para la bd altamirano
               <Route path="/ascorp" element={<FormularioPago />} />

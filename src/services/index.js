@@ -1,8 +1,13 @@
 import React from "react";
 import axios, { AxiosError } from "axios";
 import { data } from "autoprefixer";
+//server
 
-const BaseUrl = "http://localhost:5124/";
+//server gratuito
+const BaseUrl = "http://apiadapli.itechs.mx/";
+
+//ruta api local
+//const BaseUrl = "http://localhost:5124/";
 
 // ver clave
 export async function SaldaAbonoWeb(dataClave) {
