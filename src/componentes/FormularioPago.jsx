@@ -2,7 +2,7 @@ import React, { Fragment, useState, useEffect, useRef } from "react";
 import { SaldaAbonoWeb } from "../services/index";
 import { ImagenUpload } from "../services/UploadImagen";
 import { getMetodopagoList, ListaBancos } from "../services/Banco";
-import ObtenerRutaFormulario from "../services/ConexionBdPorEmpresa";
+import { ObtenerRuta } from "../services/ConexionBdPorEmpresa";
 import { UrlLogin } from "../services/Login";
 import swal from "sweetalert";
 
@@ -23,7 +23,8 @@ function FormularioPago() {
 
   useEffect(() => {
     async function loginForm() {
-      const rutaClave = await ObtenerRutaFormulario();
+      // const rutaClave = await ObtenerRutaFormulario();
+      const rutaClave = await ObtenerRuta();
       const loginApi = await UrlLogin(rutaClave);
       if (loginApi.status === 200) {
         setLogin(loginApi.data.data);
@@ -36,7 +37,7 @@ function FormularioPago() {
   useEffect(() => {
     async function VerMetodoPago() {
       // const token = await login;
-      const rutaClave = await ObtenerRutaFormulario();
+      const rutaClave = await ObtenerRuta();
       const response = await getMetodopagoList(rutaClave);
       if (response.status === 200) {
         setMetodoPago(response.data);
@@ -47,7 +48,7 @@ function FormularioPago() {
 
   useEffect(() => {
     async function VerBancos() {
-      const rutaClave = await ObtenerRutaFormulario();
+      const rutaClave = await ObtenerRuta();
       const response = await ListaBancos(rutaClave);
       if (response.status === 200) {
         setBanco(response.data);
@@ -84,8 +85,7 @@ function FormularioPago() {
   const _handleSubmit = async function (e) {
     e.preventDefault();
     try {
-      const PagoEfectivo = 1;
-      const ClaveEmpresa = await ObtenerRutaFormulario();
+      const ClaveEmpresa = await ObtenerRuta();
 
       if (formValues.importe_pago == "") {
         throw new SyntaxError("No ha ingresado un 'Importe'");
@@ -240,7 +240,7 @@ function FormularioPago() {
               <option defaultValue>Seleccionar cuenta</option>
               {banco.map((elemento) => (
                 <option key={elemento.idBanco} value={elemento.idBanco}>
-                  {elemento.cuenta}
+                  {elemento.banco1 + " - " + elemento.cuenta}
                 </option>
               ))}
             </select>
@@ -296,7 +296,7 @@ function FormularioPago() {
           <br></br>
           <div className="form-floating col-sm-12 col-md-6 col-lg-6 col-xl-6">
             <textarea
-              className="textareano rounded-3 p-3 form-control form-control-lg mb-2 "
+              className="textareano rounded-3 p-3 pt-4 form-control form-control-lg mb-2 fs-7  "
               name="notas"
               value={formValues.notas}
               onChange={handleChange}

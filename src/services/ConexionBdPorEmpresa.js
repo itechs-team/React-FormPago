@@ -1,8 +1,11 @@
 import axios from "axios";
 
-function ObtenerRutaFormulario() {
-  var params = window.location.hash;
-  const borrarDiagonal = params.slice(2);
-  return borrarDiagonal;
+export function ObtenerRuta() {
+  var arrayParametros = window.location.hash.split("/");
+  return arrayParametros;
 }
-export default ObtenerRutaFormulario;
+
+export function ObtenerRutaFormularioTarea() {
+  var arrayParametrosTarea = window.location.hash.split("/");
+  return arrayParametrosTarea;
+}

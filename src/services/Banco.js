@@ -9,11 +9,12 @@ const BaseUrl = "http://apiadapli.itechs.mx/";
 //const BaseUrl = "http://localhost:5124/";
 
 //ver todos los bancos
-export async function ListaBancos(rutaClave) {
+export async function ListaBancos(ruta) {
   try {
-    const empresa = rutaClave;
+    const empresa = ruta[2];
+    const idSucursal = ruta[1];
     const response = await axios({
-      url: `${BaseUrl}api/Banco/VerBanco/${empresa}`,
+      url: `${BaseUrl}api/Banco/VerBanco/${idSucursal}/${empresa}`,
       method: "GET",
     });
     return response;
@@ -25,7 +26,7 @@ export async function ListaBancos(rutaClave) {
 //ver formaPago
 export async function getMetodopagoList(rutaClave) {
   try {
-    const empresa = rutaClave;
+    const empresa = rutaClave[2];
     // const token = data;
     const response = await axios({
       url: `${BaseUrl}api/MetodoPago/VerMetodoPago/${empresa}`,

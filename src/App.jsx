@@ -1,7 +1,6 @@
 import FormularioPago from "./componentes/FormularioPago";
-import ObtenerRutaFormulario from "./services/ConexionBdPorEmpresa";
 import { BrowserRouter, HashRouter, Route, Routes } from "react-router-dom";
-
+import FormularioTareas from "./componentes/FormularioTareas";
 import React from "react";
 
 function App() {
@@ -11,17 +10,19 @@ function App() {
         <HashRouter>
           <div>
             <Routes>
-              <Route path="/CCU951214BQ5" element={<FormularioPago />} />
-              <Route path="/armhe" element={<FormularioPago />} /> //tiene dos
-              claves diferetnes
-              <Route path="/POTODEMO" element={<FormularioPago />} /> //hay 3
-              claves para la bd altamirano
+              //ruta de prueba
+              <Route path="/3/prueba" element={<FormularioPago />} />
+              //ruta Tareas
+              <Route path="/Tareas/POTODEMO" element={<FormularioTareas />} />
+              //rutas registro pago
+              <Route path="/3/APRENDERE" element={<FormularioPago />} />
+              <Route path="/2019/transportista" element={<FormularioPago />} />
+              <Route path="/1015/POTODEMO" element={<FormularioPago />} />
+              <Route path="/1/armhe" element={<FormularioPago />} />
               <Route path="/ascorp" element={<FormularioPago />} />
-              <Route path="/RENE" element={<FormularioPago />} /> //hay 3 claves
-              para la bd renelomeli
+              <Route path="/RENE" element={<FormularioPago />} />
               <Route path="/mariposablanca" element={<FormularioPago />} />
-              <Route path="/gloria" element={<FormularioPago />} /> //hay 2
-              claves para la bd gloria
+              <Route path="/gloria" element={<FormularioPago />} />
               <Route path="/grupo" element={<FormularioPago />} />
               <Route path="/express" element={<FormularioPago />} />
               <Route path="/jd" element={<FormularioPago />} />
@@ -31,9 +32,10 @@ function App() {
               <Route path="/sanluis" element={<FormularioPago />} />
               <Route path="/TLC" element={<FormularioPago />} />
               <Route path="/TOLS8708147E6" element={<FormularioPago />} />
-              <Route path="/itechs" element={<FormularioPago />} /> //HAY MUCHAS
-              CLAVES CON LA BD ITECHS
+              <Route path="/itechs" element={<FormularioPago />} />
               <Route path="/VAEJ890318DK8" element={<FormularioPago />} />
+              // faltan
+              <Route path="/CCU951214BQ5" element={<FormularioPago />} />
             </Routes>
           </div>
         </HashRouter>

@@ -12,7 +12,7 @@ export async function UrlLogin(ruta) {
     const formData = new FormData();
     formData.append("Nick", "UserApi"); //corr
     formData.append("Password", "Tangamanga1#"); //corr//corr
-    formData.append("ClaveEmpresa", ruta); //corr
+    formData.append("ClaveEmpresa", ruta[2]); //corr
     const response = await axios({
       url: `${BaseUrl}api/validar/login`,
       method: "POST",
